@@ -214,10 +214,10 @@
 
     html.light & {
       background-color: $yellow-200;
-      color: $yellow-800;
+      color: $yellow-900;
       .badge-pill {
         color: $yellow-200;
-        background-color: $yellow-800;
+        background-color: $yellow-900;
       }
       &:hover {
         background-color: $yellow-300;
@@ -334,8 +334,12 @@
 
   &.label-accounts,
   &.label-payment-channels,
+  &.label-amm,
   &.label-アカウント,
   &.label-payment-channel,
+  &.label-use-infrastructure,
+  &.label-use-security,
+  &.blog-category-development,
   &.chip-indigo {
     @include chip-indigo;
   }
@@ -344,21 +348,30 @@
   &.label-xrp,
   &.label-ブロックチェーン,
   &.label-non-fungible-tokens-nfts,
+  &.label-use-nfts,
+  &.blog-category-release_notes,
+  &.blog-category-features,
   &.chip-green {
     @include chip-green;
   }
 
   &.label-checks,
   &.label-core-server,
-  &.label-コアサーバー,
+  &.label-コアサーバ,
+  &.label-use-interoperability,
+  &.label-use-web_monetization,
+  &.blog-category-gateway_bulletins,
   &.chip-purple  {
     @include chip-purple;
   }
 
   &.label-cross-currency,
   &.label-security,
-  &.label-複数通貨間,
+  &.label-クロスカレンシー,
   &.label-セキュリティ,
+  &.label-use-gaming,
+  &.label-use-defi,
+  &.blog-category-amendments,
   &.chip-yellow {
     @include chip-yellow;
   }
@@ -369,6 +382,9 @@
   &.label-分散型取引所,
   &.label-スマートコントラクト,
   &.label-トランザクション送信,
+  &.label-use-developer_tooling,
+  &.label-use-payments,
+  &.blog-category-developer_reflections,
   &.chip-blue {
     @include chip-blue;
   }
@@ -378,6 +394,9 @@
   &.label-development,
   &.label-トークン,
   &.label-開発,
+  &.label-use-wallet,
+  &.label-use-sustainability,
+  &.blog-category-advisories,
   &.chip-orange {
     @include chip-orange;
   }
@@ -388,6 +407,9 @@
   &.label-手数料,
   &.label-支払い,
   &.label-データ保持,
+  &.label-use-exchanges,
+  &.label-use-custody,
+  &.blog-category-security,
   &.chip-magenta {
     @include chip-magenta;
   }

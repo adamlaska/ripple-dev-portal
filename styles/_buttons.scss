@@ -1,6 +1,6 @@
 // Button styling --------------------------------------------------------------
 
-.btn, .content a.button, .content .btn {
+.btn, article a.button, article .btn {
   font-weight: bold;
   cursor: pointer;
   text-decoration: none;
@@ -9,7 +9,7 @@
   line-height: 16px;
 }
 
-.content a.button {
+article a.button {
   padding: .5rem 1rem;
   margin: 0 0.5rem;
   display: inline-block;
@@ -55,6 +55,8 @@ button[disabled="disabled"] {
   &::after {
     display: inline-block;
     content: url(../img/icons/arrow-right.svg);
+    position: relative;
+    top: 1px;
     vertical-align: middle;
     padding-left: 8px;
     -webkit-transition: transform 0.3s ease-out;
@@ -73,6 +75,28 @@ button[disabled="disabled"] {
       -o-transform: translateX(4px);
       transform: translateX(4px);
     }
+  }
+}
+
+.btn-arrow-out::after {
+  background-position: left 0px bottom 0px;
+  content: "\00a0";
+  background-image: url(../img/icons/arrow-up-right-white.svg);
+  background-repeat: no-repeat;
+  display: inline-block;
+  padding: 4px 8px 4px 12px;
+  transition: background-position 0.3s ease-in-out;
+  margin-left: 4px;
+}
+
+.btn-arrow-out:hover::after {
+  background-position: left 4px bottom 4px;
+}
+
+@media (max-width: 767.98px) {
+  .btn-arrow-out {
+    display: block;
+    width: 100%;
   }
 }
 

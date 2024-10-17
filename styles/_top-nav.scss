@@ -1,15 +1,21 @@
 /* Top navigation ----------------------------------------------------------- */
+$nav-height: 80px;
+$banner-height: 0; // Apex 2024 banner was 46px. 0 for no pencil banner.
+
+[data-component-name="layouts/RootLayout"] {
+  padding-top: $nav-height + $banner-height;
+}
+
 .top-nav {
   background-color: $gray-900;
-  height: 80px;
+  height: $nav-height;
   padding: 0;
-
   // Logo
   .navbar-brand {
     text-decoration: none;
     white-space: pre;
-    -webkit-transition: opacity .2s ease, color .2s ease;
-    transition: opacity .2s ease, color .2s ease;
+    -webkit-transition: opacity 0.2s ease, color 0.2s ease;
+    transition: opacity 0.2s ease, color 0.2s ease;
     padding-left: 2rem;
 
     .logo {
@@ -51,7 +57,6 @@
     }
   }
 
-
   // Dropdowns -----------------------------------------------------------------
   // Shared styles
   .dropdown-toggle {
@@ -68,7 +73,7 @@
     }
     .dropdown-item {
       line-height: 1rem;
-      padding: .75rem 0;
+      padding: 0.75rem 0;
       white-space: normal;
 
       &.dropdown-hero {
@@ -82,7 +87,7 @@
           background-color: $gray-800;
           border-radius: $border-radius-sm;
           flex-grow: 0;
-          padding: .75rem;
+          padding: 0.75rem;
           margin-right: 2rem;
           margin-top: auto;
           margin-bottom: auto;
@@ -120,8 +125,11 @@
       }
     }
 
-    .col-for-popular-pages,
-    .col-for-人気ページ {
+    // > .dropdown-item { // Ungrouped, i.e. Community dropdown
+    //   grid-column: 1/4;
+    // }
+
+    .col-for-get_started {
       background-color: $gray-800;
     }
 
@@ -190,7 +198,7 @@
       border-radius: 0 0 $border-radius-lg $border-radius-lg;
       padding: 2.5rem;
 
-      .dropdown-item{
+      .dropdown-item {
         &.dropdown-hero {
           padding: 0;
         }
@@ -200,77 +208,92 @@
         display: grid;
         gap: 40px;
 
-        &#topnav_dd_xrp-ledger-overviewhtml {
+        &#topnav_dd_about {
           grid-template-columns: 180px 180px 180px;
         }
 
-        &#topnav_dd_docshtml {
+        &#topnav_dd_docs {
           grid-template-columns: 180px 180px 260px;
           left: -200px;
         }
 
-        &#topnav_dd_contributehtml {
+        &#topnav_dd_community {
           grid-template-columns: 200px;
+        }
+
+        &#topnav_dd_resources {
+          grid-template-columns: 195px 180px 180px;
+          left: -200px;
         }
 
         .dropdown-hero {
           grid-row: 1;
           grid-column: 1 / 4;
         }
-        #dropdown-hero-for-documentation,
-        #dropdown-hero-for-ドキュメント {
+        #dropdown-hero-for-docs {
           grid-column: 1 / 3;
         }
 
         // "About" dropdown placement
-        .col-for-xrp-ledger {
+        .col-for-xrp_ledger {
           grid-row: 1 / 3;
           grid-column: 1;
         }
         .col-for-xrp {
           grid-column: 2;
         }
-        .col-for-sustainability {
+        .col-for-sustainability,
+        .col-for-持続可能性 {
           grid-column: 2;
         }
-        .col-for-about {
+        .col-for-about,
+        .col-for-概要 {
           grid-row: 1 / 3;
           grid-column: 3;
         }
 
-        // "Docs" dropdown placement
-        .col-for-article-types {
+        // "Docs" dropdown placement (desktop)
+        .col-for-article_types {
           grid-column: 1;
           grid-row: 2;
         }
-        .col-for-online-tools {
-          grid-column: 1;
-          grid-row: 3;
-        }
-        .col-for-get-started {
+        .col-for-use_cases {
           grid-column: 2;
-          grid-row: 2 / 4;
+          grid-row: 2;
         }
-        .col-for-popular-pages,
-        .col-for-人気ページ {
+        .col-for-get_started {
           grid-column: 3;
-          grid-row: 1 / 4;
+          grid-row: 1 / 3;
           margin: -40px -40px -40px 0;
           padding: 40px;
+        }
+
+        // "Resources" dropdown placement
+        .col-for-development {
+          grid-column: 1;
+        }
+        .col-for-current-status,
+        .col-for-現在のステータス {
+          grid-column: 2;
+        }
+        .col-for-join-in,
+        .col-for-参加する {
+          grid-column: 3;
         }
       }
 
       &.smaller-dropdown {
         min-width: 180px;
+        padding: 1.25rem;
       }
     }
 
     #topnav-pages {
       flex-grow: 0;
-      @media (min-width: 992px) and (max-width: 1030px) {
-        // Fix for top nav overflow in this range
+      @media (min-width: 992px) and (max-width: 1133px) {
+        // Part of the fix for top nav overflow in this range
         .nav-link {
-          padding: $nav-link-padding-y 1.6rem;//TODO:checkme
+          padding: $nav-link-padding-y 1rem;
         }
       }
     }
@@ -284,13 +307,24 @@
 
       #language_selector_header_btn {
         padding-right: 0;
+        @media (min-width: 992px) and (max-width: 1133px) {
+          // Part of the fix for top nav overflow in this range
+          padding-left: 1rem;
+        }
       }
     }
 
     @include media-breakpoint-up(xl) {
       #topnav-search {
-        margin-left: 4rem;
-        margin-right: .5rem;
+        margin-left: 3.5rem;
+        margin-right: 0.5rem;
+      }
+      #topnav-language {
+        margin-right: 0.5rem;
+      }
+      #topnav-button {
+        margin-left: 0.2rem;
+        margin-right: 1rem;
       }
     }
   } // End desktop styles
@@ -318,7 +352,7 @@
           display: block;
           width: 100%;
           height: 3px;
-          transition: all .2s ease;
+          transition: all 0.2s ease;
         }
         &::before {
           top: 0;
@@ -346,6 +380,20 @@
       }
     }
 
+    .navbar-nav {
+      align-items: unset !important; // Undo "browser-entry.css" rule
+
+      #topnav-button {
+        background-color: $gray-900;
+        padding: 1rem 1.5rem;
+      }
+
+      #topnav-search {
+        [data-component-name="Search/SearchTrigger"] {
+          cursor: pointer;
+        }
+      }
+    }
     .navbar-nav .nav-link,
     .navbar-collapse > .nav-item {
       line-height: 150%;
@@ -364,7 +412,7 @@
       margin: 0;
       width: 100%;
       overflow: auto;
-      transition: all .2s ease;
+      transition: all 0.2s ease;
       height: 0;
       display: block;
       padding: 0;
@@ -380,7 +428,7 @@
           padding-bottom: 4rem;
         }
 
-        &#topnav_dd_docshtml {
+        &#topnav_dd_docs {
           display: grid;
           //grid-template-columns: 187px 187px;
           grid-template-columns: minmax(187px, 1fr) minmax(187px, 1fr);
@@ -392,34 +440,23 @@
             grid-row: 1;
           }
 
-          // "Docs" dropdown placement
-          .col-for-article-types {
+          // "Docs" dropdown placement (mobile)
+          .col-for-document_types
+          {
             grid-column: 1;
             grid-row: 2;
           }
-          .col-for-online-tools {
-            grid-column: 1;
-            grid-row: 3;
-            padding-bottom: 32px;
-          }
-          .col-for-get-started {
+          .col-for-use_cases
+          {
             grid-column: 2;
-            grid-row: 2 / 4;
-            padding-bottom: 32px;
+            grid-row: 2;
           }
-          .col-for-popular-pages,
-          .col-for-人気ページ {
+          .col-for-get_started
+          {
             grid-column: 1 / 3;
             grid-row: 4;
             margin: -1px;
             padding-top: 33px;
-          }
-          .col-for-questions,
-          .col-for-質問 {
-            grid-column: 1 / 3;
-            grid-row: 5;
-            margin: -1px;
-            padding-bottom: 32px;
           }
         }
       }
@@ -446,19 +483,19 @@
         border: 0;
         font-family: FontAwesome;
         color: $blue-purple-400;
-        font-size: .75rem;
-        transition: all .2s ease;
+        font-size: 0.75rem;
+        transition: all 0.2s ease;
         overflow: clip;
         width: 1rem;
       }
 
       &::before {
-        content:"\f053"; // < chevron
+        content: "\f053"; // < chevron
         display: inline-block;
         margin-bottom: -5px; // fix weird placement on Chrome
       }
       &::after {
-        content:"\f054"; // > chevron
+        content: "\f054"; // > chevron
         position: absolute;
         right: 2rem;
       }
@@ -480,9 +517,9 @@
 
     // Move search to top of mobile menu ---------------------------------------
     #top-main-nav {
-      padding-top: 72px;
+      background-color: $gray-800;
+      padding-top: 32px;
       position: relative;
-      transition: padding-top .2s ease;
 
       // Hide search and other sub-menus when one sub-menu is expanded
       // (js required to add the class on the dropdown event)
@@ -493,7 +530,9 @@
           display: none;
         }
 
-        #topnav-search {
+        #topnav-search, 
+        #topnav-language,
+        #topnav-theme {
           // display: none;
           height: 0;
           overflow: clip;
@@ -505,9 +544,7 @@
     #topnav-search {
       position: absolute;
       top: 0;
-      width: 100%;
-      height: 72px;
-      transition: all .2s ease;
+      right: 105px;
 
       .input-group {
         flex-wrap: nowrap; // Fix search bar splitting into two lines on iPhone 5
@@ -515,6 +552,10 @@
     }
 
     #topnav-language {
+      position: absolute;
+      top: 0;
+      right: 65px;
+
       hr {
         border-top: 1px solid $gray-800;
         margin-top: 0.25rem;
@@ -523,38 +564,32 @@
       }
     }
 
+    #topnav-theme {
+      position: absolute;
+      top: 0;
+      right: 26px;
+    }
   } // end mobile specific styles ----------------------------------------------
-
-  // nav "hero" images
-  #top-nav-hero-docs {
-    content: url("../img/icons/docs.svg");
-  }
-  #top-nav-hero-contribute {
-    content: url("../img/icons/contribute.svg");
-  }
 
 }
 
-
 // Fix so anchors don't jump under the fixed header ----------------------------
-.main h1:before,
-.main h2:before,
-.main h3:before,
-.main h4:before,
-.main h5:before,
-.main h6:before,
-#main_content_wrapper:before,
+article h1:before,
+article h2:before,
+article h3:before,
+article h4:before,
+article h5:before,
+article h6:before,
 .interactive-block:before {
   display: block;
   content: " ";
-  margin-top: -80px;
-  height: 80px;
+  margin-top: -24px;
+  height: 60px;
   visibility: hidden;
+  pointer-events: none;
 }
-
-// Fix so links aren't unclickable underneath the header anchor-fix
-a {
-  z-index: 1;
+article h1:first-of-type:before {
+  margin-top: -40px; // Add less space to page title (but don't overlap Edit button)
 }
 
 // Animated chevron (e.g. for language dropdown) -------------------------------
@@ -562,17 +597,17 @@ a {
 .chevron {
   position: relative;
   display: inline-block;
-  width: .75rem;
-  height: .5625rem;
+  width: 0.75rem;
+  height: 0.5625rem;
 
   span {
     position: absolute;
-    top: .25rem;
+    top: 0.25rem;
     display: inline-block;
-    width: .5rem;
-    height: .15rem;
+    width: 0.5rem;
+    height: 0.15rem;
     background-color: $blue-purple-400;
-    transition: all .2s ease;
+    transition: all 0.2s ease;
     border: none;
   }
   &:not(.expander) span {
@@ -606,33 +641,13 @@ a {
   }
 }
 
-// Theme toggler
-.custom-theme-toggle {
-  .custom-control-label {
-    padding: 1rem;
-    cursor: pointer;
-  }
-  .custom-control-label::before,
-  .custom-control-input:checked ~ .custom-control-label::before {
-    position: static;
-    display: inline-block;
-    content: " ";
-    cursor: pointer;
-    border: 0;
-    background-image: url("../img/sun-moon.svg");
-    background-size: 3rem;
-    background-color: transparent;
-    transform-origin: center;
-    margin-left: -.5rem;
-    margin-right: .5rem;
-    transition: transform .4s ease, background-position .4s ease;
-    // Default: dark mode, show moon
-    transform: rotate(15deg);
-    background-position: top left;
-  }
-  .custom-control-label::after {
-    display: none;
-  }
+#topnav-theme > div {
+  border-radius: var(--language-picker-border-radius);
+  color: var(--language-picker-text-color);
+  background-color: var(--language-picker-background-color);
+  border: 1px solid var(--language-picker-border-color);
+  padding: var(--language-picker-input-padding-vertical) var(--language-picker-input-padding-horizontal);
+  min-height: var(--language-picker-min-height);
 }
 
 // Fix dropdown box-shadows on mobile (language selector's shadow overlaps the

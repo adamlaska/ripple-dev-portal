@@ -1,18 +1,19 @@
-$light-bg: $gray-100;
-$light-fg: $black;
-$light-fg-muted: $gray-800;
-$light-fg-disabled: $gray-400;
-$light-form-bg: $gray-200;
-$light-box-shadow: 0px 5px 20px 0px $gray-300;
-$light-link-hover-color: $blue-purple-500;
-$light-standout-bg: $gray-050;
-
 // General color elements ------------------------------------------------------
+article {
+
+  p code,
+  table code,
+  li>code {
+    background-color: $gray-200;
+    color: $gray-900;
+  }
+}
 
 body {
   background-color: $light-bg;
   color: $light-fg;
 }
+
 #topnav-theme .custom-theme-toggle {
   .custom-control-label::before {
     background-color: transparent;
@@ -21,11 +22,22 @@ body {
   }
 }
 
-h1, h2, h3, h4, h5, h6,
-.h1, .h2, .h3, .h4, .h5, .h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.h1,
+.h2,
+.h3,
+.h4,
+.h5,
+.h6 {
   &:not(.chip) {
     color: $light-fg;
   }
+
   &.green-500 {
     color: $green-700;
     text-shadow: white 0 0 2px, white -1px -1px 2px, white 1px 1px 2px;
@@ -35,6 +47,7 @@ h1, h2, h3, h4, h5, h6,
 .bg-grey-800 {
   background-color: $light-standout-bg;
 }
+
 .grey-400 {
   color: $gray-600;
 }
@@ -42,12 +55,15 @@ h1, h2, h3, h4, h5, h6,
 .text-muted {
   color: $light-fg-muted !important;
 }
+
 .longform {
   color: $light-fg-muted;
 }
+
 .numbers {
   color: $black;
 }
+
 .stat-highlight,
 .eyebrow {
   color: $gray-900;
@@ -62,7 +78,9 @@ h1, h2, h3, h4, h5, h6,
 }
 
 // Forms and inputs ------------------------------------------------------------
-.search, .input-group, .form-group {
+.search,
+.input-group,
+.form-group {
   .input-group-text {
     background-color: $gray-200;
     color: $gray-800;
@@ -99,45 +117,15 @@ h1, h2, h3, h4, h5, h6,
   background-color: $light-form-bg;
 }
 
-// Algolia search results
-.xrp-ledger-dev-portal {
-  // The extra specificity makes this override the default Algolia styles.
-  .algolia-autocomplete {
-    .ds-dropdown-menu [class^="ds-dataset-"] {
-      background-color: $light-standout-bg;
-    }
-    .ds-dropdown-menu::before {
-      background-color: $light-standout-bg;
-    }
-    .algolia-docsearch-suggestion {
-      background-color: $light-standout-bg;
-    }
-    .algolia-docsearch-suggestion--category-header {
-      color: $black;
-      border-bottom-color:$blue-purple-500;
-    }
-    .algolia-docsearch-suggestion--subcategory-column {
-      color: $black;
-    }
-    .algolia-docsearch-suggestion--title {
-      color: $black;
-    }
-    .algolia-docsearch-suggestion--text {
-      color: $light-fg-muted;
-    }
-    .algolia-docsearch-suggestion--highlight {
-      color: $black;
-      background-color: $gray-300;
-    }
-    .algolia-docsearch-suggestion--category-header .algolia-docsearch-suggestion--category-header-lvl0 .algolia-docsearch-suggestion--highlight, .algolia-docsearch-suggestion--category-header .algolia-docsearch-suggestion--category-header-lvl1 .algolia-docsearch-suggestion--highlight, .algolia-docsearch-suggestion--text .algolia-docsearch-suggestion--highlight {
-      background-color: $gray-300;
-    }
-  }
+[data-component-name="Search/SearchIcon"] > path {
+  fill: black;
 }
 
 // Navigation ------------------------------------------------------------------
 
-a, nav a {
+a,
+nav a,
+a:not([role="button"]) {
   color: $light-fg;
 
   &.btn-primary {
@@ -149,7 +137,10 @@ a, nav a {
     }
   }
 
-  &:hover, &:active, &.active {
+  &:hover,
+  &:active,
+  &.active
+  {
     color: $light-link-hover-color;
   }
 
@@ -158,7 +149,9 @@ a, nav a {
   }
 }
 
-a.card:hover, &:active, &.active {
+a.card:hover,
+&:active,
+&.active {
   // Don't turn link-card text purple on hover
   color: $light-fg;
 }
@@ -167,15 +160,15 @@ a.card:hover, &:active, &.active {
   color: $light-fg-muted;
 }
 
-
 // Buttons
 .btn-outline-secondary,
-.content a.button,
+article a.button,
 .navbar-dark .navbar-nav .nav-link.btn-outline-secondary {
   color: $dark;
   border-color: $dark;
 
-  &:not(:disabled):not(.disabled):hover, &:not(:disabled):not(.disabled):active {
+  &:not(:disabled):not(.disabled):hover,
+  &:not(:disabled):not(.disabled):active {
     color: $primary;
     border-color: $primary;
     background-color: transparent;
@@ -186,11 +179,12 @@ a.card:hover, &:active, &.active {
 .breadcrumb {
   background: $light-bg;
 }
+
 .breadcrumb-item a {
   color: $gray-600;
 
   &:hover {
-    color: $primary
+    color: $primary;
   }
 }
 
@@ -211,10 +205,11 @@ a.card:hover, &:active, &.active {
   }
 
   // nav "hero" images
-  #top-nav-hero-docs {
+  #dropdown-hero-for-docs > img {
     content: url(../img/icons/lightmode/docs.svg);
   }
-  #top-nav-hero-contribute {
+
+  #dropdown-hero-for-community > img {
     content: url(../img/icons/lightmode/contribute.svg);
   }
 
@@ -223,18 +218,21 @@ a.card:hover, &:active, &.active {
     border-color: $gray-100;
     box-shadow: $light-box-shadow;
 
-    a:hover, a.active {
+    a:hover,
+    a.active {
       color: $light-link-hover-color;
     }
 
     .dropdown-item.dropdown-hero {
-      > img {
+      >img {
         background-color: $gray-050;
       }
+
       p {
         color: $gray-700;
       }
     }
+
     .dropdown-item.active {
       color: $light-link-hover-color;
     }
@@ -243,18 +241,20 @@ a.card:hover, &:active, &.active {
       color: $gray-600;
     }
 
-    .col-for-popular-pages,
-    .col-for-人気ページ,
-    .col-for-questions,
-    .col-for-質問 {
+    .col-for-get_started{
       background-color: $gray-200;
     }
+  }
+
+  #topnav-button {
+    background-color: $gray-200;
   }
 
   // Top nav mobile
   @include media-breakpoint-down(md) {
     .navbar-toggler {
       .navbar-toggler-icon {
+
         &::after,
         &::before,
         div {
@@ -264,8 +264,12 @@ a.card:hover, &:active, &.active {
     }
 
     .navbar-nav .nav-link,
-    .navbar-collapse > .nav-item {
+    .navbar-collapse>.nav-item {
       background: $gray-200;
+    }
+
+    #top-main-nav {
+      background-color: $gray-300;
     }
   }
 }
@@ -274,16 +278,18 @@ a.card:hover, &:active, &.active {
 aside .sidenav_cat_title {
   color: $black;
 }
+
 .page-toc .level-1 a,
 .command-list .separator {
   color: $black;
 }
+
 aside a:hover,
 aside .sidenav_cat_title:hover,
 aside a.active,
 aside a.active:hover,
-aside .active > a,
-aside .active > a:hover {
+aside .active>a,
+aside .active>a:hover {
   color: $light-link-hover-color;
 }
 
@@ -296,12 +302,11 @@ aside .active > a:hover {
       border-left-color: $light-link-hover-color;
     }
 
-    .active > .nav-link {
+    .active>.nav-link {
       border-left-color: $light-link-hover-color;
     }
   }
 }
-
 
 .page-toc,
 .command-list {
@@ -312,6 +317,7 @@ aside .active > a:hover {
   }
 
   li a {
+
     &:hover,
     .active {
       border-left-color: $light-link-hover-color;
@@ -327,32 +333,40 @@ aside .active > a:hover {
 }
 
 .copyright-license {
-  text-shadow: white 0px 0px 2px, white 1px 1px 2px,
-               white 2px 2px 3px, white 2px 2px 4px,
-               white 2px 2px 5px, white 2px 2px 6px,
-               white -1px -1px 2px,
-               white -2px -2px 3px, white -2px -2px 4px;
+  text-shadow: white 0px 0px 2px, white 1px 1px 2px, white 2px 2px 3px,
+    white 2px 2px 4px, white 2px 2px 5px, white 2px 2px 6px, white -1px -1px 2px,
+    white -2px -2px 3px, white -2px -2px 4px;
+}
+
+// Osano cookie consent overrides
+a.osano-cm-link {
+  color: #ffffff;
 }
 
 // Layout elements -------------------------------------------------------------
-.card, .cta-card {
+article .card,
+.landing .card,
+.cta-card,
+aside .card {
   color: $light-fg;
   background-color: $light-standout-bg;
   box-shadow: $light-box-shadow;
 }
+
 #code-samples-deck {
   .card {
     box-shadow: $light-box-shadow;
   }
+
   .card-header {
     border-bottom: none;
     background-color: $light-standout-bg;
   }
+
   .card-footer {
     background-color: $light-standout-bg;
   }
 }
-
 
 // FAQ
 .page-faq,
@@ -368,16 +382,25 @@ aside .active > a:hover {
     color: $light-fg;
     box-shadow: $light-box-shadow;
 
-    > h4 a.expander:hover {
+    >h4 a.expander:hover {
       color: $light-fg;
     }
   }
 }
 
 .page-community {
+  .com-card {
+    background: #FFFFFF;
+  }
+
+  .project-description {
+    color: #343437;
+  }
+
   #platform-stack-overflow {
     content: url("../img/logos/lightmode/stack-overflow.svg");
   }
+
   #platform-discord {
     content: url("../img/logos/lightmode/discord.svg");
   }
@@ -414,20 +437,22 @@ aside .active > a:hover {
 }
 
 // Callouts
-.devportal-callout.caution, .devportal-callout.注意 {
+.devportal-callout.caution,
+.devportal-callout.注意 {
   border-color: $yellow-700;
 
-  > strong:first-child::before {
+  >strong:first-child::before {
     color: $yellow-700;
   }
 }
 
-.devportal-callout.tip, .devportal-callout.ヒント {
+.devportal-callout.tip,
+.devportal-callout.ヒント {
   border-color: $green-600;
 
-    > strong:first-child::before {
-      color: $green-600;
-    }
+  >strong:first-child::before {
+    color: $green-600;
+  }
 }
 
 // Code ------------------------------------------------------------------------
@@ -437,22 +462,25 @@ code {
 }
 
 // Code blocks
-pre code {
-  color: $gray-050;
+pre code, pre {
+  background-color: $gray-200;
 }
 
 // Code tabs
 .multicode {
   a {
     color: $black;
+
     &.current {
       color: $white;
     }
+
     &:hover {
       text-decoration: none;
       background-color: $light-form-bg;
       color: $white;
     }
+
     &:focus {
       background-color: $gray-800;
     }
@@ -465,7 +493,6 @@ pre code {
   border-color: $gray-100;
 }
 
-
 .interactive-block {
   .breadcrumb-item.done a::after {
     color: $green-900;
@@ -477,7 +504,6 @@ pre code {
   background-color: $light-standout-bg;
 }
 
-
 .rpc-tool {
   pre .toggle {
     color: $white;
@@ -488,7 +514,6 @@ pre code {
   }
 }
 
-
 // Individual page styles ------------------------------------------------------
 
 // Homepage
@@ -498,7 +523,10 @@ pre code {
   }
 
   #benefits-list {
-    @each $benefit in "public", "streamlined", "performance", "low-cost", "community", "reliability" {
+    @each $benefit in "public", "streamlined", "performance", "low-cost",
+    "community", "reliability"
+
+      {
       ##{$benefit} {
         content: url("../img/icons/lightmode/#{$benefit}.svg");
       }
@@ -515,9 +543,34 @@ pre code {
 
 #wallets {
   #wallet-xumm {
-    content: url("../img/wallets/lightmode/xumm.svg")
+    content: url("../img/wallets/lightmode/xumm.svg");
+  }
+
+  #wallet-bitfrost {
+    content: url("../img/wallets/lightmode/bitfrost.png");
+  }
+
+  #wallet-towo {
+    content: url("../img/wallets/lightmode/towo.svg");
+  }
+
+  #wallet-keystone {
+    content: url("../img/wallets/lightmode/keystone.svg");
+  }
+
+  #wallet-dcent {
+    content: url("../img/wallets/lightmode/dcent.svg");
+  }
+
+  #wallet-coin {
+    content: url("../img/wallets/lightmode/coin.svg");
+  }
+
+  #wallet-gem {
+    content: url("../img/wallets/lightmode/gem.svg");
   }
 }
+
 
 #top-exchanges {
   // Kraken, eToro are OK on both light and dark
@@ -542,108 +595,177 @@ pre code {
   background-color: $light-bg;
 }
 
-// Carbon calculator
-.page-calculator {
-  #co2Animation, #gasAnimation {
-    //filter: invert(100%) hue-rotate(200deg) brightness(1.8);
-    // Leave these dark for now
-    background: $body-bg;
-    padding: 1rem;
+// Use Cases & Featured Projects page
+.page-uses {
+
+  .card-body {
+    background: $white;
+    color: $gray-700;
   }
 
-  #calculator-mobile-toggle.show {
-    background-color: $blue-purple-500;
-    color: $white;
-  }
-  #calculator-inputs.sticky {
-    background-color: $light-bg;
+  .modal-footer,
+  .modal-header {
+    background-color: $gray-050;
   }
 
-  #data-selector li:not(.active) a {
-    background-color: $light-form-bg;
-    color: $light-fg;
+
+
+  @each $usecase in "infrastructure",
+  "developer_tooling",
+  "interoperability",
+  "wallet",
+  "nfts",
+  "exchanges",
+  "gaming",
+  "security",
+  "payments",
+  "web_monetization",
+  "sustainability",
+  "cbdc",
+  "custody",
+  "other",
+  "carbon_markets",
+  "defi" {
+    ##{$usecase} {
+      content: url("../img/icons/usecases/lightmode/ic_#{$usecase}.png");
+    }
+  }
+
+  .category-header {
+    color: $gray-700;
+  }
+
+  .category_count {
+    background: #D2B2FF;
+    color: #350080;
+  }
+
+  .section-text-title {
+    color: #000;
+  }
+
+  @each $company, $type in ('bitgo': 'svg',
+    'sologenic-nft': 'svg',
+    'carbonland-trust': 'svg',
+    'futureverse': 'png',
+    "moai-finance": "svg",
+    "orchestra-finance": "svg",
+    'x-tokenize': 'svg',
+    'casino-coin': 'svg',
+    'xrp-cafe': 'svg',
+    'coil': 'svg',
+    'xrp-toolkit': 'svg',
+    'first-ledger-bot': 'svg',
+    'cryptum': 'svg',
+    'xrpl-org-ledger-explorer': 'svg',
+    'evernode': 'svg',
+    'xrpl-rosetta': 'svg',
+    'ripples-cbdc-platform': 'svg',
+    'xrpscan': 'svg',
+    'ripples-on-demand-liquidity': 'svg',
+    'xumm-wallet': 'svg',
+    'sologenic-dex': 'svg',
+    'Crossmark': 'png'
+
+  ) {
+    #use_case_companies_list {
+      ##{$company} {
+        .biz-logo {
+          max-height: 40px;
+          content: url("../img/uses/lightmode/#{$company}.#{$type}");
+        }
+      }
+    }
+  }
+  #use_case_companies_list {
+    #threezy {
+      .biz-logo {
+        max-height: 40px;
+        content: url("../img/uses/lightmode/threezy.png");
+      }
+    }
+  }
+.modal-content-uses{
+  .first-ledger-bot{
+    content: url("../img/uses/lightmode/first-ledger-bot.svg");
+  }
+  .moai-finance{
+    content: url("../img/uses/lightmode/moai-finance.svg");  
+  }
+  .orchestra-finance{
+    max-height: 52px ;
+    margin: 0;
+    content: url("../img/uses/lightmode/orchestra-finance.svg");  
   }
 }
 
-// Use Cases & Featured Projects page
-.page-uses {
-  @each $usecase in "micropayments", "wallets", "exchanges", "stablecoins", "nft", "defi", "cbdc" {
-    ##{$usecase} {
-      content: url("../img/icons/lightmode/#{$usecase}.svg");
-    }
-  }
-
-  // darkened card graphics
-  @each $company,$card-graphic in (
-    "bitpay": "blue-green",
-    "exodus": "green",
-    "forte": "light-blue-2",
-    "ripple": "blue-light-blue",
-    "xrplorer": "green-purple"
-  ) {
-    ##{$company} .card-footer {
-      background-image: url("../img/cards/lightmode/3col-#{$card-graphic}.svg");
-    }
-  }
-
   // Monochrome logos; invert.
-  #bitpay, #coil, #forte, #xrplorer, #gatehub {
+  #bitpay,
+  // #coil,
+  #forte,
+  #xrplorer,
+  #gatehub {
     .biz-logo {
       filter: invert(100%);
     }
   }
-  // Alternate SVG logos
-  @each $company in "bitgo", "exodus", "ripple", "xrpl-labs" {
-    ##{$company} {
-      .biz-logo {
-        content: url("../img/uses/lightmode/#{$company}.svg");
-      }
-    }
-  }
-  // non-SVG logos:
-  #raisedinspace {
-    .card-footer {
-      background-image: url("../img/cards/lightmode/3col-orange-yellow-2.svg");
-    }
-    .biz-logo {
-      content: url("../img/uses/lightmode/raised.png");
-    }
-  }
-  #towo {
-    .biz-logo {
-      content: url("../img/uses/lightmode/towo.png");
-    }
-  }
+
 }
 
 .landing-bg {
   opacity: 0.4;
+
   @include media-breakpoint-up(md) {
-    opacity: 1.0;
+    opacity: 1;
   }
 }
+
 .landing-builtin-bg {
   &::before {
     opacity: 0.4;
+
     @include media-breakpoint-up(md) {
-      opacity: 1.0;
+      opacity: 1;
     }
   }
 }
 
-
 // feedback widget
 #feedback-content {
-  .docked-widget {
+  .widget-form-wrapper {
+    background-color: $white !important;
 
-    .widget-header {
-      background-color: $light-bg !important;
-      color: $light-fg !important;
+    div {
+      background-color: $white !important;
     }
+
+    textarea {
+      background-color: $gray-100 !important;
+    }
+
+    .widget-header-title {
+      color: $gray-900 !important;
+    }
+
+    .cancel {
+      color: $blue-purple-500 !important;
+    }
+  }
+
+  .widget-helpful {
+    .widget-header {
+      background-color: $white !important;
+    }
+
+    .widget-header-title {
+      color: $gray-900 !important;
+    }
+
     .widget-header-icon {
       filter: invert(100%);
     }
   }
+
 }
 
 // Docs landing page
@@ -652,13 +774,16 @@ pre code {
     .card:nth-child(1) .card-footer {
       background-image: url(../img/cards/lightmode/4col-green.svg);
     }
+
     .card:nth-child(2) .card-footer {
       background-image: url(../img/cards/lightmode/4col-light-blue.svg);
     }
+
     .card:nth-child(4) .card-footer {
       background-image: url(../img/cards/lightmode/4col-yellow.svg);
     }
   }
+
   #doc-types .card-deck {
     .card:nth-child(4) .card-footer {
       background-image: url(../img/cards/lightmode/4col-light-blue-2.svg);
@@ -668,24 +793,118 @@ pre code {
 
 .page-docs-index,
 .page-community {
+  .funding-text{
+    color: #232325;
+  }
+  .stat{
+    .small-text{
+      color: #232325;
+    }
+  }
+  .project-card{
+    background-color: transparent;
+
+  }
+  .card-details {
+    background-color: transparent;
+  }
+
+  .card-image {
+    background: #E0E0E1;
+  }
+
+  #community-table tr {
+    border-bottom: 1px solid #34343740;
+  }
+
+  .card-description {
+    color: #343437 !important;
+  }
+
+  .card-subtitle {
+    color: #111112 !important;
+  }
+
+  .card-title {
+    color: #111112 !important;
+  }
+
+  .main-title {
+    color: #111112;
+  }
+
+  .event-location {
+    color: #232325 !important;
+  }
+
+  .event-details {
+    color: #232325 !important;
+  }
+
+  .upcoming-event {
+    .event-name {
+      color: #111112;
+    }
+  }
+
+  .upcoming-label {
+    color: #232325 !important;
+  }
+
+  .description {
+    color: #232325;
+  }
+
+  .events-text {
+    color: #111112;
+  }
+
+  .discord-icon {
+    content: url(../img/community/ic_discord_light.png)
+  }
+
+  .twitter-icon {
+    content: url(../img/community/ic_twitter_light.png);
+  }
+
+  .youtube-icon {
+    content: url(../img/community/ic_youtube_light.png);
+  }
+
+  .xrpl-icon {
+    content: url(../img/community/ic_xrpl_light.png);
+  }
+
+  .github-icon {
+    content: url(../img/community/ic_github_light.png);
+  }
+
+  .stackoverflow-icon {
+    content: url(../img/community/ic_stackoverflow_light.png);
+  }
+
   #run-a-network-node .card-deck {
     .card:nth-child(4) .card-footer {
       background-image: url(../img/cards/lightmode/4col-light-green.svg);
     }
-    
   }
+
   #run-a-network-node .text-cards a {
     color: $black;
   }
-  
+
+  #xrpl-blog .blog-graphic {
+    content: url(../img/community/lightmode/community-blog@2x.png);
+  }
+
   #xrpl-events .text-light {
     color: $black !important;
   }
 
-  #xrplGrantsDark,
-  #xrplGrantsDark-small,
-  #careersDark,
-  #careersDark-small {
+  #xrplGrantsDark g,
+  #xrplGrantsDark-small g,
+  #careersDark g,
+  #careersDark-small g{
     filter: invert(100%) brightness(0.8);
   }
 }
@@ -702,6 +921,7 @@ pre code {
       background-image: url(../img/cards/lightmode/3col-green-2.svg);
     }
   }
+
   #xrpl-protocol .card-deck {
     .card:nth-child(1) .card-footer {
       background-image: url(../img/cards/lightmode/4col-light-blue-4.svg);
@@ -711,73 +931,104 @@ pre code {
 
 // Placeholder text colors (search bars, etc.)
 $placeholder-color: $gray-600;
-::-webkit-input-placeholder { /* Chrome */
+
+::-webkit-input-placeholder {
+  /* Chrome */
   color: $placeholder-color;
 }
-:-ms-input-placeholder { /* IE 10+ */
+
+:-ms-input-placeholder {
+  /* IE 10+ */
   color: $placeholder-color;
 }
-::-moz-placeholder { /* Firefox 19+ */
-  color: $placeholder-color;
-  opacity: 1;
-}
-:-moz-placeholder { /* Firefox 4 - 18 */
+
+::-moz-placeholder {
+  /* Firefox 19+ */
   color: $placeholder-color;
   opacity: 1;
 }
 
+:-moz-placeholder {
+  /* Firefox 4 - 18 */
+  color: $placeholder-color;
+  opacity: 1;
+}
 
 // Events page
 .page-events {
-
   label {
     color: $gray-900;
   }
 
   .event-card {
-      color: $black;
-      background-color: $gray-050;
-      box-shadow: 0px 5px 20px 0px $gray-300;
+    color: $black;
+    background-color: $gray-050;
+    box-shadow: 0px 5px 20px 0px $gray-300;
   }
+
   a.event-card:hover {
-      color: $black;
+    color: $black;
   }
 
   .event-hero {
-      color: $gray-900;
+    color: $gray-900;
   }
 
   .event-save-date {
-      color: $gray-900;
+    color: $gray-900;
   }
 
   .event-small-gray {
-      color: $gray-600;
+    color: $gray-600;
   }
 
   #event-hero-image {
-      height: 100%;
-      min-height: 209px;
-      background: url(../img/events/event-hero1-light@2x.png);
-      background-size: contain;
-      background-repeat: no-repeat;
-      background-position: center;
+    height: 100%;
+    min-height: 209px;
+    background: url(../img/events/event-hero1-light@2x.png);
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
   }
 
   .icon-date::before {
-      background: url(../img/events/event-date-light.svg);
+    background: url(../img/events/event-date-light.svg);
   }
 
   .icon-location::before {
-      background: url(../img/events/event-location-light.svg);
+    background: url(../img/events/event-location-light.svg);
+  }
+
+  .events-filter[type="checkbox"]::before {
+    background-color: $gray-100;
+  }
+
+  .events-filter[type="checkbox"]:not(:disabled):checked:hover::after {
+    background-image: url(../img/events/event-check.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: $blue-purple-600;
+    border-width: 2px;
+    border-style: solid;
+    border-color: $blue-purple-600;
+    border-radius: 4px;
+  }
+
+  .events-filter[type="checkbox"]:not(:disabled):hover::before {
+    background-color: $gray-100;
+  }
+
+  .events-filter[type="checkbox"]:not(:disabled):hover::after {
+    background-color: $gray-100;
   }
 }
 
-
 .page-ambassadors {
-
   #benefits-list {
-    @each $benefits in "benefits-01", "benefits-02", "benefits-03", "benefits-04", "benefits-05", "benefits-06" {
+    @each $benefits in "benefits-01", "benefits-02", "benefits-03",
+    "benefits-04", "benefits-05", "benefits-06"
+
+      {
       ##{$benefits} {
         content: url("../img/ambassadors/lightmode/#{$benefits}.svg");
       }
@@ -785,7 +1036,10 @@ $placeholder-color: $gray-600;
   }
 
   #eligibility-list {
-    @each $eligibility in "eligibility-01", "eligibility-02", "eligibility-03", "eligibility-04", "eligibility-05" {
+    @each $eligibility in "eligibility-01", "eligibility-02", "eligibility-03",
+    "eligibility-04", "eligibility-05"
+
+      {
       ##{$eligibility} {
         content: url("../img/ambassadors/lightmode/#{$eligibility}.svg");
       }
@@ -804,5 +1058,178 @@ $placeholder-color: $gray-600;
 
   #xrplGrantsDark {
     filter: invert(100%) brightness(0.8);
+  }
+}
+
+.page-impact {
+
+  .connect-list {
+    @each $connect in "connect-01", "connect-02", "connect-03", "connect-04" {
+      ##{$connect} {
+        content: url("../img/impact/lightmode/#{$connect}.svg");
+      }
+    }
+  }
+
+  #map-light {
+    display: block;
+  }
+
+  #map-dark {
+    display: none;
+  }
+
+}
+
+main article .card-grid {
+  color: $black;
+
+  code {
+    background-color: $green-100;
+  }
+
+  .card-icon-container,
+  &.card-grid-3xN .card-icon-container {
+    background: $gray-300;
+  }
+}
+
+[data-component-name="Footer/Footer"] {
+  [data-component-name="Footer/FooterColumn"] {
+    text-shadow: $gray-100 0px 0px 2px, $gray-100 1px 1px 2px, $gray-100 2px 2px 3px,
+      $gray-100 2px 2px 4px, $gray-100 2px 2px 5px, $gray-100 2px 2px 6px, $gray-100 -1px -1px 2px,
+      $gray-100 -2px -2px 3px, $gray-100 -2px -2px 4px;
+  }
+}
+
+.dev-blog {
+  .text-bg {
+    background-color: $white;
+  }
+
+  #card-date {
+    color: $gray-600;
+  }
+
+  .category-header {
+    color: $gray-900;
+  }
+
+  label {
+    color: $gray-700;
+  }
+
+  .blog-filter[type="checkbox"]::before {
+    background: $gray-100;
+  }
+
+  .blog-filter[type="checkbox"]:checked::before {
+    background: $gray-100;
+  }
+
+  .blog-filter[type="checkbox"]:not(:disabled):checked:hover::after {
+    background-image: url(../img/blog/blog-check-light-mode.svg);
+  }
+
+  .blog-filter[type="checkbox"]:not(:disabled):hover::before {
+    background: $gray-100;
+  }
+
+  .blog-filter[type="checkbox"]:not(:disabled):hover::after {
+    background: $gray-100;
+  }
+
+  .post-date {
+    text-decoration: overline solid #145C35 10%;
+  }
+
+  #general-badge {
+    background-color: #FFFFFF;
+    color: #343437; 
+  }
+
+  #release_notes-badge {
+    background-color: #32E685;
+    color: #145C35; 
+  }
+
+  #advisories-badge {
+    background-color: #FF6719;
+    color: #4C1A00;
+  }
+
+  #amendments-badge {
+    background-color: #FAFF19;
+    color: #4B4C00; 
+  }
+
+  #development-badge {
+    background-color: #7919FF;
+    color: #20004C;
+  }
+
+  #developer_reflections-badge {
+    background-color: #19A3FF;
+    color: #002E4C;
+  }
+
+  #gateway_bulletins-badge {
+    background-color: #D919FF;
+    color: #40004C;
+  }
+
+  #features-badge {
+    background-color: #32E685;
+    color: #145C35;
+  }
+
+  #security-badge {
+    background-color: #FF198B;
+    color: #4C0026;
+  }
+
+  .dropdown-btn {
+    color: $gray-900;
+    background-color: $gray-200;
+    border-color: $gray-200;
+
+    img {
+      content: url("../img/icons/lightmode/chevron-arrow-down.svg");
+    }
+  }
+
+  .dropdown-content {
+    background-color: $gray-200;
+  }
+}
+
+.page-tokenization {
+  .project-cards .project-logo {
+    filter: invert(100%);
+  }
+
+  .article-card {
+    background-color: $white;
+  }
+
+  .article-card-background {
+    filter: drop-shadow(0px 1px 18px rgba(24, 24, 24, 0.50));
+  }
+
+  .evernode {
+    content: url("../img/logos/evernode.svg");
+  }
+
+  .prev img {
+    content: url("../img/icons/prev_light.svg"); 
+  }
+
+  .next img {
+    content: url("../img/icons/prev_light.svg");
+    transform: scaleX(-1);
+  }
+
+  .arrow-button {
+    background-color: $gray-200;
   }
 }

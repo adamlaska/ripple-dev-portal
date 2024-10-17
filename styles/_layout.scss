@@ -17,10 +17,6 @@ section {
   padding: 0;
 }
 
-#main_content_wrapper { // Push below fixed nav
-  margin-top: 80px;
-}
-
 // Square blocks ---------------------------------------------------------------
 
 .square {
@@ -93,7 +89,7 @@ section {
   padding-right: 0;
 }
 
-@for $i from 1 through 5 {
+@for $i from 1 through 6 {
   .cols-of-#{$i} {
     @include media-breakpoint-up(lg) {
       grid-template-rows: repeat($i, min-content);
@@ -118,7 +114,19 @@ section {
   .col {
     padding-left: 0;
     padding-right: 0;
+    min-width: 100%;
   }
+
+  &.card-grid-4xN {
+    /* 4 equal columns and any number of auto-sized rows. */
+    grid-auto-rows: auto;
+    grid-template-columns: repeat(2, 1fr);
+    
+    @include media-breakpoint-up(lg) {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+
 
   &.card-grid-3xN {
     /* 3 equal columns and any number of auto-sized rows. */
@@ -172,6 +180,16 @@ section {
     .card-body {
       padding: 8px;
       padding-bottom: 24px;
+
+      .card-icon-container {
+        width: 50px;
+        height: 50px;
+
+        img {
+          width: 70%;
+          height: 70%;
+        }
+      }
     }
   }
 
@@ -201,60 +219,11 @@ section {
   }
 }
 
-// 3-column layout for docs pages ----------------------------------------------
-
-.xrp-ledger-dev-portal.sidebar-primary .main {
-  z-index: 5;
-  padding: 2rem;
-  min-height: 700px;
-}
-
-.left-sidebar {
-  padding: 2rem;
-
-  @include media-breakpoint-up(lg) {
-    position: sticky;
-    max-height: calc(100vh - 80px);
-    top: 80px;
-    left: 0;
-    overflow: auto;
-    border: 0;
-  }
-}
-
-.right-sidebar {
-  padding: 2rem;
-  border: 1px solid $gray-600;
-
-  @include media-breakpoint-up(lg) {
-    position: sticky;
-    max-height: calc(100vh - 80px);
-    top: 80px;
-    right: 0;
-    overflow: auto;
-    border: 0;
-  }
-}
-
 
 /* Responsive design for different viewscreens ------------------------------ */
 
 @include media-breakpoint-down(md) {
-
-  .right-sidebar .card {
-    padding-left: 0;
-  }
-
-  #page-toc-wrapper {
-    position: static;
-    // display: block;
-    clear: both;
-    overflow-y: inherit;
-    max-width: 100%;
-    max-height: inherit;
-    word-break: break-all;
-  }
-  .main {
+  article {
     overflow-wrap: break-word;
     word-wrap: break-word;
     overflow: hidden;
@@ -375,5 +344,11 @@ section {
     will-change: transform;
     margin: 0;
     --line-height-multiplier: 1.2;
+  }
+}
+
+@include media-breakpoint-up(lg) {
+  [data-component-name="TableOfContent/TableOfContent"] {
+    margin-right: 32px;
   }
 }

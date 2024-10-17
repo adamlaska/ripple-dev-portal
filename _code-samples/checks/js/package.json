@@ -1,0 +1,9 @@
+{
+  "name": "checks-examples",
+  "description": "Example code for signing and submitting Checks",
+  "version": "0.0.2",
+  "license": "MIT",
+  "dependencies": {
+    "xrpl": "^3.0.0"
+  }
+}
