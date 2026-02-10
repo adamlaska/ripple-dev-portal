@@ -68,10 +68,10 @@ In addition to the [common ledger entry fields][], {% code-page-name /%} entries
 | `LoanBrokerNode`      | Number    | UInt64        | Yes       | Identifies the page where this item is referenced in the `LoanBroker` owner directory. |
 | `LoanBrokerID`        | String    | Hash256       | Yes       | The ID of the _Loan Broker_ associated with this loan. |
 | `Borrower`            | String    | AccountID     | Yes       | The account address of the _Borrower_. |
-| `LoanOriginationFee`  | Number    | Number        | Yes       | The amount paid to the _Loan Broker_, taken from the principal loan at creation. |
-| `LoanServiceFee`      | Number    | Number        | Yes       | The amount paid to the _Loan Broker_ with each loan payment. |
-| `LatePaymentFee`      | Number    | Number        | Yes       | The amount paid to the _Loan Broker_ for each late payment. |
-| `ClosePaymentFee`     | Number    | Number        | Yes       | The amount paid to the _Loan Broker_ when a full early payment is made. |
+| `LoanOriginationFee`  | String    | Number        | Yes       | The amount paid to the _Loan Broker_, taken from the principal loan at creation. |
+| `LoanServiceFee`      | String    | Number        | Yes       | The amount paid to the _Loan Broker_ with each loan payment. |
+| `LatePaymentFee`      | String    | Number        | Yes       | The amount paid to the _Loan Broker_ for each late payment. |
+| `ClosePaymentFee`     | String    | Number        | Yes       | The amount paid to the _Loan Broker_ when a full early payment is made. |
 | `OverpaymentFee`      | Number    | UInt32        | Yes       | The fee charged on overpayments, in units of 1/10th basis points. Valid values are 0 to 100000 (inclusive), representing 0% to 100%. |
 | `InterestRate`        | Number    | UInt32        | Yes       | The annualized interest rate of the loan, in 1/10th basis points. |
 | `LateInterestRate`    | Number    | UInt32        | Yes       | The premium added to the interest rate for late payments, in units of 1/10th basis points. Valid values are 0 to 100000 (inclusive), representing 0% to 100%. |
@@ -83,10 +83,10 @@ In addition to the [common ledger entry fields][], {% code-page-name /%} entries
 | `PreviousPaymentDueDate` | Number    | UInt32        | Yes       | The timestamp of when the previous payment was made, in [seconds since the Ripple Epoch][]. |
 | `NextPaymentDueDate`  | Number    | UInt32        | Yes       | The timestamp of when the next payment is due, in [seconds since the Ripple Epoch][]. |
 | `PaymentRemaining`    | Number    | UInt32        | Yes       | The number of payments remaining on the loan. |
-| `PrincipalOutstanding` | Number   | Number        | Yes       | The principal amount still owed on the loan. |
-| `TotalValueOutstanding` | Number  | Number        | Yes       | The total amount owed on the loan, including remaining principal and fees. |
-| `ManagementFeeOutstanding` | Number | Number      | Yes       | The remaining management fee owed to the loan broker. |
-| `PeriodicPayment`     | Number    | Number        | Yes       | The amount due for each payment interval. |
+| `PrincipalOutstanding` | String   | Number        | Yes       | The principal amount still owed on the loan. |
+| `TotalValueOutstanding` | String  | Number        | Yes       | The total amount owed on the loan, including remaining principal and fees. |
+| `ManagementFeeOutstanding` | String | Number      | Yes       | The remaining management fee owed to the loan broker. |
+| `PeriodicPayment`     | String    | Number        | Yes       | The amount due for each payment interval. |
 | `LoanScale`           | Number    | Int32         | No        | The scale factor that ensures all computed amounts are rounded to the same number of decimal places. It is based on the total loan value at creation time. |
 
 {% admonition type="info" name="Note" %}
@@ -115,7 +115,6 @@ When the loan broker discovers that the borrower can't make an upcoming payment,
 The ID of a `Loan` ledger entry is the [SHA-512Half][] of the following values, concatenated in order:
 
 - The `Loan` space key `0x004C`.
-- The [AccountID][] of the Borrower account.
 - The `LoanBrokerID` of the associated `LoanBroker` ledger entry.
 - The `LoanSequence` number of the `LoanBroker` ledger entry.
 

@@ -40,10 +40,10 @@ Only the owner of the associated `LoanBroker` entry can initiate this transactio
 
 In addition to the [common fields][], {% code-page-name /%} transactions use the following fields:
 
-| Field Name     | JSON Type | Internal Type | Required? | Description |
-|:-------------- |:----------|:--------------|:----------|:------------|
-| `LoanBrokerID` | String    | Hash256       | Yes       | The ID of the `LoanBroker` ledger entry to deposit the first-loss capital. |
-| `Amount`       | Object    | Amount        | Yes       | The amount of first-loss capital to deposit. |
+| Field Name     | JSON Type           | Internal Type | Required? | Description |
+|:-------------- |:--------------------|:--------------|:----------|:------------|
+| `LoanBrokerID` | String              | Hash256       | Yes       | The ID of the `LoanBroker` ledger entry to deposit the first-loss capital. |
+| `Amount`       | [Currency Amount][] | Amount        | Yes       | The amount of first-loss capital to deposit. |
 
 
 ## Error Cases

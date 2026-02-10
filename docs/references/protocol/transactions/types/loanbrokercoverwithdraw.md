@@ -40,11 +40,11 @@ Only the owner of the associated `LoanBroker` entry can initiate this transactio
 
 In addition to the [common fields][], {% code-page-name /%} transactions use the following fields:
 
-| Field Name     | JSON Type | Internal Type | Required? | Description |
-|:-------------- |:----------|:-------------|:----------|:------------|
-| `LoanBrokerID` | String    | Hash256      | Yes       | The ID of the `LoanBroker` ledger entry to withdraw from. |
-| `Amount`       | Object    | Amount       | Yes       | The amount of first-loss capital to withdraw. |
-| `Destination`  | String    | AccountID    | No        | An account to receive the assets. |
+| Field Name     | JSON Type           | Internal Type | Required? | Description |
+|:-------------- |:--------------------|:--------------|:----------|:------------|
+| `LoanBrokerID` | String              | Hash256       | Yes       | The ID of the `LoanBroker` ledger entry to withdraw from. |
+| `Amount`       | [Currency Amount][] | Amount        | Yes       | The amount of first-loss capital to withdraw. |
+| `Destination`  | String              | AccountID     | No        | An account to receive the assets. |
 
 
 ## Error Cases
