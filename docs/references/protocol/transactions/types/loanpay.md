@@ -43,20 +43,21 @@ To see how loan payment transactions are calculated, see [transaction pseudo-cod
 
 In addition to the [common fields][], {% code-page-name /%} transactions use the following fields:
 
-| Field Name      | JSON Type | Internal Type | Required? | Description |
-|:--------------- |:----------|:-------------|:----------|:------------|
-| `LoanID`        | String    | Hash256      | Yes       | The ID of the `Loan` ledger entry to repay. |
-| `Amount`        | Number    | Amount       | Yes       | The amount to pay toward the loan. |
+| Field Name      | JSON Type           | Internal Type | Required? | Description |
+|:--------------- |:--------------------|:--------------|:----------|:------------|
+| `LoanID`        | String              | Hash256       | Yes       | The ID of the `Loan` ledger entry to repay. |
+| `Amount`        | [Currency Amount][] | Amount        | Yes       | The amount to pay toward the loan. |
 
 
 ## {% $frontmatter.seo.title %} Flags
 
 Transactions of the {% code-page-name /%} type support additional values in the [flags field], as follows:
 
-| Flag Name | Hex Value | Decimal Value | Description |
-|:----------|:----------|:--------------|:------------|
-| `tfLoanOverpayment` | `0x00010000` | 65536  | Indicates that the remaining payment amount should be treated as an overpayment. |
-| `tfLoanFullPayment` | `0x00020000` | 131072 | Indicates that the borrower is making a full early repayment. |
+| Flag Name           | Hex Value    | Decimal Value | Description |
+|:--------------------|:-------------|:--------------|:------------|
+| `tfLoanOverpayment` | `0x00010000` | 65536         | Indicates that the remaining payment amount should be treated as an overpayment. |
+| `tfLoanFullPayment` | `0x00020000` | 131072        | Indicates that the borrower is making a full early repayment. |
+| `tfLoanLatePayment` | `0x00040000` | 262144        | Indicates that the borrower is making a late loan payment. |
 
 
 ## Error Cases

@@ -45,7 +45,7 @@ In addition to the [common fields][], {% code-page-name /%} transactions use the
 | `LoanBrokerID`         | String    | Hash256       | No        | The loan broker ID that the transaction is modifying. |
 | `Data`                 | String    | Blob          | No        | Arbitrary metadata in hex format--limited to 256 bytes. |
 | `ManagementFeeRate`    | Number    | UInt16        | No        | The 1/10th basis point fee charged by the lending protocol owner. Valid values range from `0` to `10000` (inclusive), representing 0% to 10%. |
-| `DebtMaximum`          | Number    | Number        | No        | The maximum amount the protocol can owe the vault. The default value of `0` means there is no limit to the debt. Must be a positive value. |
+| `DebtMaximum`          | String    | Number        | No        | The maximum amount the protocol can owe the vault. The default value of `0` means there is no limit to the debt. Must be a positive value. |
 | `CoverRateMinimum`     | Number    | UInt32        | No        | The 1/10th basis point `DebtTotal` that the first-loss capital must cover. Valid values range from `0` to `100000` (inclusive), representing 0% to 100%. |
 | `CoverRateLiquidation` | Number    | UInt32        | No        | The 1/10th basis point of minimum required first-loss capital that is moved to an asset vault to cover a loan default. Valid values range from `0` to `100000` (inclusive), representing 0% to 100%. |
 

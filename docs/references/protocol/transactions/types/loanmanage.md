@@ -38,7 +38,6 @@ In addition to the [common fields][], {% code-page-name /%} transactions use the
 | Field Name     | JSON Type | Internal Type | Required? | Description |
 |:-------------- |:----------|:-------------|:----------|:------------|
 | `LoanID`       | String    | Hash256      | Yes       | The ID of the `Loan` ledger entry to manage. |
-| `Flags`        | String    | UInt32       | No        | The flag to modify the loan. |
 
 
 ## {% $frontmatter.seo.title %} Flags

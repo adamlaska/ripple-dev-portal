@@ -58,19 +58,18 @@ In addition to the [common fields][], {% code-page-name /%} transactions use the
 | Field Name                | JSON Type | Internal Type | Required? | Description |
 |:--------------------------|:----------|:--------------|:----------|:------------|
 | `LoanBrokerID`            | String    | Hash256       | Yes       | The ID of the `LoanBroker` ledger entry. |
-| `Flags`                   | String    | UInt32        | No        | Flags for the loan. |
 | `Data`                    | String    | Blob          | No        | Arbitrary metadata in hex format (max 256 bytes). |
 | `Counterparty`            | String    | AccountID     | No        | The address of the counterparty of the loan. |
-| `LoanOriginationFee`      | Number    | Number        | No        | The amount paid to the `LoanBroker` owner when the loan is created. |
-| `LoanServiceFee`          | Number    | Number        | No        | The amount paid to the `LoanBroker` owner with each loan payment. |
-| `LatePaymentFee`          | Number    | Number        | No        | The amount paid to the `LoanBroker` owner for late payments. |
-| `ClosePaymentFee`         | Number    | Number        | No        | The amount paid to the `LoanBroker` owner for early full repayment. |
+| `LoanOriginationFee`      | String    | Number        | No        | The amount paid to the `LoanBroker` owner when the loan is created. |
+| `LoanServiceFee`          | String    | Number        | No        | The amount paid to the `LoanBroker` owner with each loan payment. |
+| `LatePaymentFee`          | String    | Number        | No        | The amount paid to the `LoanBroker` owner for late payments. |
+| `ClosePaymentFee`         | String    | Number        | No        | The amount paid to the `LoanBroker` owner for early full repayment. |
 | `OverpaymentFee`          | Number    | UInt32        | No        | A fee charged on overpayments, in units of 1/10th basis points. Valid values are 0 to 100000 (inclusive), representing 0% to 100%. |
 | `InterestRate`            | Number    | UInt32        | No        | The annualized interest rate of the loan, in units of 1/10th basis points. Valid values are 0 to 100000 (inclusive), representing 0% to 100%. |
 | `LateInterestRate`        | Number    | UInt32        | No        | A premium added to the interest rate for late payments, in units of 1/10th basis points. Valid values are 0 to 100000 (inclusive), representing 0% to 100%. |
 | `CloseInterestRate`       | Number    | UInt32        | No        | A fee charged for repaying the loan early, in units of 1/10th basis points. Valid values are 0 to 100000 (inclusive), representing 0% to 100%. |
 | `OverpaymentInterestRate` | Number    | UInt32        | No        | The interest rate charged on overpayments, in units of 1/10th basis points. Valid values are 0 to 100000 (inclusive), representing 0% to 100%. |
-| `PrincipalRequested`      | Number    | Number        | Yes       | The principal loan amount requested by the borrower. |
+| `PrincipalRequested`      | String    | Number        | Yes       | The principal loan amount requested by the borrower. |
 | `PaymentTotal`            | Number    | UInt32        | No        | The total number of payments to be made against the loan. |
 | `PaymentInterval`         | Number    | UInt32        | No        | The number of seconds between loan payments. |
 | `GracePeriod`             | Number    | UInt32        | No        | The number of seconds after the loan's payment due date when it can be defaulted. |
@@ -113,7 +112,7 @@ Besides errors that can occur for all transactions, {% code-page-name /%} transa
 | Error Code                | Description                        |
 |:--------------------------|:-----------------------------------|
 | `temBAD_SIGNER`           | - The transaction is missing a `CounterpartySignature` field.<br>- This transaction is part of a `Batch` transaction, but didn't specify a `Counterparty`. |
-| `temINVALID`              | One or more of the numeric fields are outside their valid ranges. For example, the `GracePeriod` can't be longer than the `PaymentInterval`. |
+| `temINVALID`              | One or more of the numeric fields are outside their valid ranges. For example, the `GracePeriod` can't be longer than the `PaymentInterval` or less than `60` seconds. |
 | `tecNO_ENTRY`             | The `LoanBroker` doesn't exist. |
 | `tecNO_PERMISSION`        | Neither the transaction sender's `Account` or the `Counterparty` field owns the associated `LoanBroker` ledger entry. |
 | `tecINSUFFICIENT_FUNDS`   | - The `Vault` associated with the `LoanBroker` doesn't have enough assets to fund the loan.<br>- The `LoanBroker` ledger entry doesn't have enough first-loss capital to meet the minimum coverage requirement for the new total debt. |
