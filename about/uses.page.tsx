@@ -477,7 +477,7 @@ const uses = [
   {
     id: "wallet",
     title: "Wallet",
-    number: 6,
+    number: 7,
     description:
       "Build digital wallets to store passwords and interact with various blockchains to send and receive digital assets, including XRP."
   },
