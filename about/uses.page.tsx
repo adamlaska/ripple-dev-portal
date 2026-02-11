@@ -26,7 +26,7 @@ const logos = {
   ],
   developer_tooling: ["cryptum", "evernode", "threezy", "tokenize"],
   interoperability: ["multichain"],
-  wallet: ["crossmark", "edge", "gem-wallet", "xumm", "joey-wallet", "bifrost-wallet"],
+  wallet: ["crossmark", "edge", "gem-wallet", "xumm", "joey-wallet", "bifrost-wallet", "bitget-wallet"],
   nfts: [
     "aesthetes",
     "audiotarky",
@@ -421,6 +421,15 @@ const cardsData = [
     category_id: "wallet",
     category_name: "Wallet",
     link: "https://bifrostwallet.com/",
+  },
+  {
+    id: "bitget-wallet",
+    title: "Bitget Wallet",
+    description:
+      "Bitget Wallet is a non-custodial wallet designed to make crypto simple and secure for everyone.",
+    category_id: "wallet",
+    category_name: "Wallet",
+    link: "https://web3.bitget.com/",
   },
 ];
 
