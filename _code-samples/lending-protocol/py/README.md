@@ -51,29 +51,30 @@ LoanBroker Psuedo-Account Address: rPhpC2XGz7v5g2rPom7JSWJcic1cnkoBh9
 ## Claw Back First-loss Capital
 
 ```sh
-node coverClawback.js
+python3 cover_clawback.py
 ```
 
 The script should output the cover available, the LoanBrokerCoverDeposit transaction, cover available after the deposit, the LoanBrokerCoverClawback transaction, and the final cover available after the clawback:
 
 ```sh
-Loan broker address: r9tQSk5rQdjjVGn1brt8K5XNYFvNSLv3xU
-MPT issuer address: rJ7DiJdcThwLD5rZjC7D1neXmvLFAGk9t3
-LoanBrokerID: 655C32ADFCA0712F3CB32CA034C29FE3DE9DE876A86141F0902FB1E05DA0E442
-MPT ID: 00349F41BFA01892C83AC779E4BBB80C8CE3B92D401E4B6E
+Loan broker address: rBeEX3qQzP3UL5WMwZAzdPPpzckH73YvBn
+MPT issuer address: rNzJg2EVwo56eAoBxz5WnTfmgoLbfaAT8d
+LoanBrokerID: 041E256F124841FF81DF105C62A72676BFD746975F86786166B689F304BE96E0
+MPT ID: 0037A8ED99701AFEC4BCC3A39299252CA41838059572E7F2
 
 === Cover Available ===
 
-0 TSTUSD
+1000 TSTUSD
 
 === Preparing LoanBrokerCoverDeposit transaction ===
 
 {
+  "Account": "rBeEX3qQzP3UL5WMwZAzdPPpzckH73YvBn",
   "TransactionType": "LoanBrokerCoverDeposit",
-  "Account": "r9tQSk5rQdjjVGn1brt8K5XNYFvNSLv3xU",
-  "LoanBrokerID": "655C32ADFCA0712F3CB32CA034C29FE3DE9DE876A86141F0902FB1E05DA0E442",
+  "SigningPubKey": "",
+  "LoanBrokerID": "041E256F124841FF81DF105C62A72676BFD746975F86786166B689F304BE96E0",
   "Amount": {
-    "mpt_issuance_id": "00349F41BFA01892C83AC779E4BBB80C8CE3B92D401E4B6E",
+    "mpt_issuance_id": "0037A8ED99701AFEC4BCC3A39299252CA41838059572E7F2",
     "value": "1000"
   }
 }
@@ -84,27 +85,28 @@ Cover deposit successful!
 
 === Cover Available After Deposit ===
 
-1000 TSTUSD
+2000 TSTUSD
 
 === Verifying Asset Issuer ===
 
-MPT issuer account verified: rJ7DiJdcThwLD5rZjC7D1neXmvLFAGk9t3. Proceeding to clawback.
+MPT issuer account verified: rNzJg2EVwo56eAoBxz5WnTfmgoLbfaAT8d. Proceeding to clawback.
 
 === Preparing LoanBrokerCoverClawback transaction ===
 
 {
+  "Account": "rNzJg2EVwo56eAoBxz5WnTfmgoLbfaAT8d",
   "TransactionType": "LoanBrokerCoverClawback",
-  "Account": "rJ7DiJdcThwLD5rZjC7D1neXmvLFAGk9t3",
-  "LoanBrokerID": "655C32ADFCA0712F3CB32CA034C29FE3DE9DE876A86141F0902FB1E05DA0E442",
+  "SigningPubKey": "",
+  "LoanBrokerID": "041E256F124841FF81DF105C62A72676BFD746975F86786166B689F304BE96E0",
   "Amount": {
-    "mpt_issuance_id": "00349F41BFA01892C83AC779E4BBB80C8CE3B92D401E4B6E",
-    "value": "1000"
+    "mpt_issuance_id": "0037A8ED99701AFEC4BCC3A39299252CA41838059572E7F2",
+    "value": "2000"
   }
 }
 
 === Submitting LoanBrokerCoverClawback transaction ===
 
-Successfully clawed back 1000 TSTUSD!
+Successfully clawed back 2000 TSTUSD!
 
 === Final Cover Available After Clawback ===
 
