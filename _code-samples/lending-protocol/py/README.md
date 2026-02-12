@@ -347,15 +347,15 @@ Final loan flags: ['TF_LOAN_DEFAULT', 'TF_LOAN_IMPAIR']
 ## Pay a Loan
 
 ```sh
-node loanPay.js
+python3 loan_pay.py
 ```
 
 The script should output the amount required to totally pay off a loan, the LoanPay transaction, the amount due after the payment, the LoanDelete transaction, and then the status of the loan ledger entry:
 
 ```sh
-Borrower address: r46Ef5jjnaY7CDP7g22sQgSJJPQEBSmbWA
-LoanID: 8AC2B4425E604E7BB1082DD2BF2CA902B5087143B7775BE0A4DA954D3F52D06E
-MPT ID: 0031034FF84EB2E8348A34F0A8889A54F45F180E80F12341
+Borrower address: raXnMyDFQWVhvVuyb2oK3oCLGZhemkLqKL
+LoanID: A9CC92540995E49B39E79883A22FF10A374BF2CB32763E89AA986B613E16D5FD
+MPT ID: 0037BA4C909352D28BF9580F1D536AF4F7E07649B5B6E116
 
 === Loan Status ===
 
@@ -366,11 +366,12 @@ Total Payment Due (including fees): 1011 TSTUSD
 === Preparing LoanPay transaction ===
 
 {
+  "Account": "raXnMyDFQWVhvVuyb2oK3oCLGZhemkLqKL",
   "TransactionType": "LoanPay",
-  "Account": "r46Ef5jjnaY7CDP7g22sQgSJJPQEBSmbWA",
-  "LoanID": "8AC2B4425E604E7BB1082DD2BF2CA902B5087143B7775BE0A4DA954D3F52D06E",
+  "SigningPubKey": "",
+  "LoanID": "A9CC92540995E49B39E79883A22FF10A374BF2CB32763E89AA986B613E16D5FD",
   "Amount": {
-    "mpt_issuance_id": "0031034FF84EB2E8348A34F0A8889A54F45F180E80F12341",
+    "mpt_issuance_id": "0037BA4C909352D28BF9580F1D536AF4F7E07649B5B6E116",
     "value": "1011"
   }
 }
@@ -386,9 +387,10 @@ Outstanding Loan Balance: Loan fully paid off!
 === Preparing LoanDelete transaction ===
 
 {
+  "Account": "raXnMyDFQWVhvVuyb2oK3oCLGZhemkLqKL",
   "TransactionType": "LoanDelete",
-  "Account": "r46Ef5jjnaY7CDP7g22sQgSJJPQEBSmbWA",
-  "LoanID": "8AC2B4425E604E7BB1082DD2BF2CA902B5087143B7775BE0A4DA954D3F52D06E"
+  "SigningPubKey": "",
+  "LoanID": "A9CC92540995E49B39E79883A22FF10A374BF2CB32763E89AA986B613E16D5FD"
 }
 
 === Submitting LoanDelete transaction ===
