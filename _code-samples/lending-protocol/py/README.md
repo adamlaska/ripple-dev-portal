@@ -291,33 +291,34 @@ Loan created successfully!
 ## Manage a Loan
 
 ```sh
-node loanManage.js
+python3 loan_manage.py
 ```
 
 The script should output the initial status of the loan, the LoanManage transaction, and the updated loan status and grace period after impairment. The script will countdown the grace period before outputting another LoanManage transaction, and then the final flags on the loan.
 
 ```sh
-Loan broker address: rKL3u76wNGdF2Th4EvCuHV5885T6h2iFTY
-LoanID: D28764B238CF3F7D7BF4AFD07394838EDD5F278B838F97A55BEAEC1E5152719C
+Loan broker address: r9x3etrs2GZSF73vQ8endi9CWpKr5N2Rjn
+LoanID: E86DB385401D361A33DD74C8E1B44D7F996E9BA02724BCD44127F60BE057A322
 
 === Loan Status ===
 
 Total Amount Owed: 1001 TSTUSD.
-Payment Due Date: 2/25/2026, 11:58:20 PM
+Payment Due Date: 2026-03-14 02:01:51
 
 === Preparing LoanManage transaction to impair loan ===
 
 {
+  "Account": "r9x3etrs2GZSF73vQ8endi9CWpKr5N2Rjn",
   "TransactionType": "LoanManage",
-  "Account": "rKL3u76wNGdF2Th4EvCuHV5885T6h2iFTY",
-  "LoanID": "D28764B238CF3F7D7BF4AFD07394838EDD5F278B838F97A55BEAEC1E5152719C",
-  "Flags": 131072
+  "Flags": 131072,
+  "SigningPubKey": "",
+  "LoanID": "E86DB385401D361A33DD74C8E1B44D7F996E9BA02724BCD44127F60BE057A322"
 }
 
 === Submitting LoanManage impairment transaction ===
 
 Loan impaired successfully!
-New Payment Due Date: 1/27/2026, 12:05:02 AM
+New Payment Due Date: 2026-02-12 01:01:50
 Grace Period: 60 seconds
 
 === Countdown until loan can be defaulted ===
@@ -327,10 +328,11 @@ Grace period expired. Loan can now be defaulted.
 === Preparing LoanManage transaction to default loan ===
 
 {
+  "Account": "r9x3etrs2GZSF73vQ8endi9CWpKr5N2Rjn",
   "TransactionType": "LoanManage",
-  "Account": "rKL3u76wNGdF2Th4EvCuHV5885T6h2iFTY",
-  "LoanID": "D28764B238CF3F7D7BF4AFD07394838EDD5F278B838F97A55BEAEC1E5152719C",
-  "Flags": 65536
+  "Flags": 65536,
+  "SigningPubKey": "",
+  "LoanID": "E86DB385401D361A33DD74C8E1B44D7F996E9BA02724BCD44127F60BE057A322"
 }
 
 === Submitting LoanManage default transaction ===
@@ -339,7 +341,7 @@ Loan defaulted successfully!
 
 === Checking final loan status ===
 
-Final loan flags (parsed): {"tfLoanDefault":true,"tfLoanImpair":true}
+Final loan flags: ['TF_LOAN_DEFAULT', 'TF_LOAN_IMPAIR']
 ```
 
 ## Pay a Loan
