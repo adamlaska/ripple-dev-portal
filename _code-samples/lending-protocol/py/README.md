@@ -116,24 +116,25 @@ Successfully clawed back 1000 TSTUSD!
 ## Deposit and Withdraw First-loss Capital
 
 ```sh
-node coverDepositAndWithdraw.js
+python3 cover_deposit_and_withdraw.py
 ```
 
 The script should output the LoanBrokerCoverDeposit, cover balance after the deposit, the LoanBrokerCoverWithdraw transaction, and the cover balance after the withdrawal:
 
 ```sh
-Loan broker address: rKL3u76wNGdF2Th4EvCuHV5885T6h2iFTY
-LoanBrokerID: F133118D55342F7F78188BDC9259E8593853010878C9F6CEA0E2F56D829C6B15
-MPT ID: 0031034FF84EB2E8348A34F0A8889A54F45F180E80F12341
+Loan broker address: rBeEX3qQzP3UL5WMwZAzdPPpzckH73YvBn
+LoanBrokerID: 041E256F124841FF81DF105C62A72676BFD746975F86786166B689F304BE96E0
+MPT ID: 0037A8ED99701AFEC4BCC3A39299252CA41838059572E7F2
 
 === Preparing LoanBrokerCoverDeposit transaction ===
 
 {
+  "Account": "rBeEX3qQzP3UL5WMwZAzdPPpzckH73YvBn",
   "TransactionType": "LoanBrokerCoverDeposit",
-  "Account": "rKL3u76wNGdF2Th4EvCuHV5885T6h2iFTY",
-  "LoanBrokerID": "F133118D55342F7F78188BDC9259E8593853010878C9F6CEA0E2F56D829C6B15",
+  "SigningPubKey": "",
+  "LoanBrokerID": "041E256F124841FF81DF105C62A72676BFD746975F86786166B689F304BE96E0",
   "Amount": {
-    "mpt_issuance_id": "0031034FF84EB2E8348A34F0A8889A54F45F180E80F12341",
+    "mpt_issuance_id": "0037A8ED99701AFEC4BCC3A39299252CA41838059572E7F2",
     "value": "2000"
   }
 }
@@ -144,17 +145,18 @@ Cover deposit successful!
 
 === Cover Balance ===
 
-LoanBroker Pseudo-Account: rf5FREUsutDyDAaVPPvZnNmoEETr21sPDd
+LoanBroker Pseudo-Account: rUrs1bkhQyh1nxE7u99H92U2Tg8Pogw1bZ
 Cover balance after deposit: 2000 TSTUSD
 
 === Preparing LoanBrokerCoverWithdraw transaction ===
 
 {
+  "Account": "rBeEX3qQzP3UL5WMwZAzdPPpzckH73YvBn",
   "TransactionType": "LoanBrokerCoverWithdraw",
-  "Account": "rKL3u76wNGdF2Th4EvCuHV5885T6h2iFTY",
-  "LoanBrokerID": "F133118D55342F7F78188BDC9259E8593853010878C9F6CEA0E2F56D829C6B15",
+  "SigningPubKey": "",
+  "LoanBrokerID": "041E256F124841FF81DF105C62A72676BFD746975F86786166B689F304BE96E0",
   "Amount": {
-    "mpt_issuance_id": "0031034FF84EB2E8348A34F0A8889A54F45F180E80F12341",
+    "mpt_issuance_id": "0037A8ED99701AFEC4BCC3A39299252CA41838059572E7F2",
     "value": "1000"
   }
 }
@@ -165,7 +167,7 @@ Cover withdraw successful!
 
 === Updated Cover Balance ===
 
-LoanBroker Pseudo-Account: rf5FREUsutDyDAaVPPvZnNmoEETr21sPDd
+LoanBroker Pseudo-Account: rUrs1bkhQyh1nxE7u99H92U2Tg8Pogw1bZ
 Cover balance after withdraw: 1000 TSTUSD
 ```
 
