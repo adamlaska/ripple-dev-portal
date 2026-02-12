@@ -1,7 +1,7 @@
+// Setup script for lending protocol tutorials
+
 import xrpl from 'xrpl'
 import fs from 'fs'
-
-// Setup script for lending protocol tutorials
 
 process.stdout.write('Setting up tutorial: 0/6\r')
 
@@ -269,12 +269,12 @@ async function createSignedLoanSetTx (ticketSequence) {
     Account: loanBroker.address,
     Counterparty: borrower.address,
     LoanBrokerID: loanBrokerID,
-    PrincipalRequested: 1000,
+    PrincipalRequested: '1000',
     InterestRate: 500,
     PaymentTotal: 1,
     PaymentInterval: 2592000,
-    LoanOriginationFee: 100,
-    LoanServiceFee: 10,
+    LoanOriginationFee: '100',
+    LoanServiceFee: '10',
     Sequence: 0,
     TicketSequence: ticketSequence
   })
