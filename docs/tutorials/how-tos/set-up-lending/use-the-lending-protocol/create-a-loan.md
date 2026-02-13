@@ -32,6 +32,7 @@ To complete this tutorial, you should:
 - Have a basic understanding of the XRP Ledger.
 - Have an XRP Ledger client library set up in your development environment. This page provides examples for the following:
   - **JavaScript** with the [xrpl.js library][]. See [Get Started Using JavaScript][] for setup steps.
+  - **Python** with the [xrpl-py library][]. See [Get Started Using Python][] for setup steps.
 
 ## Source Code
 
@@ -43,24 +44,40 @@ You can find the complete source code for this tutorial's examples in the {% rep
 
 {% tabs %}
 {% tab label="JavaScript" %}
-From the code sample folder, use npm to install dependencies:
+From the code sample folder, use `npm` to install dependencies.
 
 ```bash
 npm install xrpl
 ```
+{% /tab %}
+{% tab label="Python" %}
+From the code sample folder, set up a virtual environment and use `pip` to install dependencies.
 
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 {% /tab %}
 {% /tabs %}
 
 ### 2. Set up client and accounts
 
 To get started, import the necessary libraries and instantiate a client to connect to the XRPL. This example imports:
-- `xrpl`: Used for XRPL client connection and transaction handling.
-- `fs` and `child_process`: Used to run tutorial set up scripts.
 
 {% tabs %}
 {% tab label="JavaScript" %}
+- `xrpl`: Used for XRPL client connection, transaction submission, and wallet handling.
+- `fs` and `child_process`: Used to run tutorial set up scripts.
+
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoan.js" language="js" before="// This step checks" /%}
+{% /tab %}
+{% tab label="Python" %}
+- `xrpl`: Used for XRPL client connection, transaction submission, and wallet handling.
+- `asyncio` and `json`: Used for async execution and JSON formatting.
+- `os`, `subprocess`, and `sys`: Used to run tutorial set up scripts.
+
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" before="# This step checks" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -69,18 +86,26 @@ Next, load the loan broker account, borrower account, and loan broker ID.
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoan.js" language="js" from="// This step checks" before="// Prepare LoanSet" /%}
+
+This example uses preconfigured accounts and loan broker data from the `lendingSetup.js` script, but you can replace `loanBroker`, `borrower`, and `loanBrokerID` with your own values.
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# This step checks" before="# Prepare LoanSet" /%}
+
+This example uses preconfigured accounts and loan broker data from the `lending_setup.py` script, but you can replace `loan_broker`, `borrower`, and `loan_broker_id` with your own values.
 {% /tab %}
 {% /tabs %}
 
-This example uses preconfigured accounts and loan broker data from the `lendingSetup.js` script, but you can replace `loanBroker`, `borrower`, and `loanBrokerID` with your own values.
-
 ### 3. Prepare LoanSet transaction
 
-Create the [LoanSet transaction][] object with the loan terms:
+Create the [LoanSet transaction][] object with the loan terms.
 
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoan.js" language="js" from="// Prepare LoanSet" before="// Loan broker signs first" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# Prepare LoanSet" before="# Loan broker signs first" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -103,6 +128,9 @@ The loan broker (the `Account`) signs the transaction first, adding their `TxnSi
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoan.js" language="js" from="// Loan broker signs first" before="// Borrower signs second" /%}
 {% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# Loan broker signs first" before="# Borrower signs second" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 5. Add borrower signature
@@ -113,6 +141,9 @@ The borrower (the `Counterparty`) signs the transaction second. Their `TxnSignat
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoan.js" language="js" from="// Borrower signs second" before="// Submit and wait" /%}
 {% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# Borrower signs second" before="# Submit and wait" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 6. Submit LoanSet transaction
@@ -122,6 +153,9 @@ Submit the fully signed `LoanSet` transaction to the XRP Ledger.
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoan.js" language="js" from="// Submit and wait" before="// Extract loan information" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# Submit and wait" before="# Extract loan information" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -134,6 +168,9 @@ Retrieve the loan's information from the transaction result by checking for the 
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoan.js" language="js" from="// Extract loan information" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# Extract loan information" /%}
 {% /tab %}
 {% /tabs %}
 

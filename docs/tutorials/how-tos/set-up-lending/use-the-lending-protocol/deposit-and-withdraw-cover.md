@@ -97,7 +97,7 @@ This example uses preconfigured accounts and loan broker data from the `lending_
 
 ### 3. Prepare LoanBrokerCoverDeposit transaction
 
-Create the [LoanBrokerCoverDeposit transaction][] object:
+Create the [LoanBrokerCoverDeposit transaction][] object.
 
 {% tabs %}
 {% tab label="JavaScript" %}
@@ -142,7 +142,7 @@ The `LoanBroker` pseudo-account address is the `Account` field, and `CoverAvaila
 
 ### 6. Prepare LoanBrokerCoverWithdraw transaction
 
-Create the [LoanBrokerCoverWithdraw transaction][] object:
+Create the [LoanBrokerCoverWithdraw transaction][] object.
 
 {% tabs %}
 {% tab label="JavaScript" %}

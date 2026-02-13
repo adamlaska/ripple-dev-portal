@@ -42,7 +42,7 @@ In addition to the [common fields][], {% code-page-name /%} transactions use the
 
 ## {% $frontmatter.seo.title %} Flags
 
-Transactions of the {% code-page-name /%} type support additional values in the [`flags` field], as follows:
+Transactions of the {% code-page-name /%} type support additional values in the [flags field], as follows:
 
 | Field Name      | Hex Value    | Decimal Value | Description |
 |:----------------|:-------------|:--------------|:------------|

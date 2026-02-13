@@ -95,7 +95,7 @@ This example uses preconfigured accounts and vault data from the `lending_setup.
 
 ### 3. Prepare LoanBrokerSet transaction
 
-Create the [LoanBrokerSet transaction][] object:
+Create the [LoanBrokerSet transaction][] object.
 
 {% tabs %}
 {% tab label="JavaScript" %}

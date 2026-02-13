@@ -32,6 +32,7 @@ To complete this tutorial, you should:
 - Have a basic understanding of the XRP Ledger.
 - Have an XRP Ledger client library set up in your development environment. This page provides examples for the following:
   - **JavaScript** with the [xrpl.js library][]. See [Get Started Using JavaScript][] for setup steps.
+  - **Python** with the [xrpl-py library][]. See [Get Started Using Python][] for setup steps.
 
 ## Source Code
 
@@ -43,24 +44,40 @@ You can find the complete source code for this tutorial's examples in the {% rep
 
 {% tabs %}
 {% tab label="JavaScript" %}
-From the code sample folder, use npm to install dependencies:
+From the code sample folder, use `npm` to install dependencies.
 
 ```bash
 npm install xrpl
 ```
+{% /tab %}
+{% tab label="Python" %}
+From the code sample folder, set up a virtual environment and use `pip` to install dependencies.
 
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 {% /tab %}
 {% /tabs %}
 
 ### 2. Set up client and accounts
 
 To get started, import the necessary libraries and instantiate a client to connect to the XRPL. This example imports:
-- `xrpl`: Used for XRPL client connection and transaction handling.
-- `fs` and `child_process`: Used to run tutorial setup scripts.
 
 {% tabs %}
 {% tab label="JavaScript" %}
+- `xrpl`: Used for XRPL client connection, transaction submission, and wallet handling.
+- `fs` and `child_process`: Used to run tutorial set up scripts.
+
 {% code-snippet file="/_code-samples/lending-protocol/js/loanPay.js" language="js" before="// This step checks" /%}
+{% /tab %}
+{% tab label="Python" %}
+- `xrpl`: Used for XRPL client connection, transaction submission, and wallet handling.
+- `asyncio` and `json`: Used for async execution and JSON formatting.
+- `os`, `subprocess`, and `sys`: Used to run tutorial set up scripts.
+
+{% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" before="# This step checks" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -69,18 +86,26 @@ Next, load the borrower account, loan ID, and MPT issuance ID.
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/loanPay.js" language="js" from="// This step checks" before="// Check initial loan status" /%}
+
+This example uses preconfigured accounts and loan data from the `lendingSetup.js` script, but you can replace `borrower`, `loanID`, and `mptID` with your own values.
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# This step checks" before="# Check initial loan status" /%}
+
+This example uses preconfigured accounts and loan data from the `lending_setup.py` script, but you can replace `borrower`, `loan_id`, and `mpt_id` with your own values.
 {% /tab %}
 {% /tabs %}
 
-This example uses preconfigured accounts and loan data from the `lendingSetup.js` script, but you can replace `borrower`, `loanID`, and `mptID` with your own values.
-
 ### 3. Check loan status
 
-Check the current status of the loan using the [ledger_entry method][]:
+Check the current status of the loan using the [ledger_entry method][].
 
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/loanPay.js" language="js" from="// Check initial loan status" before="// Prepare LoanPay transaction" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Check initial loan status" before="# Prepare LoanPay transaction" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -92,21 +117,27 @@ Other fees can be charged on a loan, such as late or early payment fees. These a
 
 ### 4. Prepare LoanPay transaction
 
-Create the [LoanPay transaction][] with the total payment amount:
+Create the [LoanPay transaction][] with the total payment amount.
 
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/loanPay.js" language="js" from="// Prepare LoanPay transaction" before="// Sign, submit, and wait for payment validation" /%}
 {% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Prepare LoanPay transaction" before="# Sign, submit, and wait for payment validation" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 5. Submit LoanPay transaction
 
-Sign and submit the `LoanPay` transaction to the XRP Ledger:
+Sign and submit the `LoanPay` transaction to the XRP Ledger.
 
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/loanPay.js" language="js" from="// Sign, submit, and wait for payment validation" before="// Extract updated loan info" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Sign, submit, and wait for payment validation" before="# Extract updated loan info" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -114,11 +145,14 @@ Verify that the transaction succeeded by checking for a `tesSUCCESS` result code
 
 ### 6. Check loan balance
 
-Retrieve the loan balance from the transaction result by checking for the `Loan` entry in the transaction metadata:
+Retrieve the loan balance from the transaction result by checking for the `Loan` entry in the transaction metadata.
 
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/loanPay.js" language="js" from="// Extract updated loan info" before="// Prepare LoanDelete transaction" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Extract updated loan info" before="# Prepare LoanDelete transaction" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -126,11 +160,14 @@ If `TotalValueOutstanding` is absent from the loan metadata, the loan has been f
 
 ### 7. Prepare LoanDelete transaction
 
-Create a [LoanDelete transaction][] to remove the paid loan from the XRP Ledger:
+Create a [LoanDelete transaction][] to remove the paid loan from the XRP Ledger.
 
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/loanPay.js" language="js" from="// Prepare LoanDelete transaction" before="// Sign, submit, and wait for deletion validation" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Prepare LoanDelete transaction" before="# Sign, submit, and wait for deletion validation" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -138,11 +175,14 @@ Either the loan broker or the borrower can submit a `LoanDelete` transaction. In
 
 ### 8. Submit LoanDelete transaction
 
-Sign and submit the `LoanDelete` transaction:
+Sign and submit the `LoanDelete` transaction.
 
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/loanPay.js" language="js" from="// Sign, submit, and wait for deletion validation" before="// Verify loan deletion" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Sign, submit, and wait for deletion validation" before="# Verify loan deletion" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -150,11 +190,14 @@ Verify that the transaction succeeded by checking for a `tesSUCCESS` result code
 
 ### 9. Verify loan deletion
 
-Confirm that the loan has been removed from the XRP Ledger:
+Confirm that the loan has been removed from the XRP Ledger.
 
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/loanPay.js" language="js" from="// Verify loan deletion" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Verify loan deletion" /%}
 {% /tab %}
 {% /tabs %}
 
