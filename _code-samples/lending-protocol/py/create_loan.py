@@ -8,8 +8,9 @@ import subprocess
 import sys
 
 from xrpl.asyncio.clients import AsyncWebsocketClient
-from xrpl.asyncio.transaction import autofill
-from xrpl.models import LoanSet, Sign, SubmitOnly, Transaction, Tx
+from xrpl.asyncio.transaction import autofill, sign, submit_and_wait
+from xrpl.transaction import sign_loan_set_by_counterparty
+from xrpl.models import LoanSet
 from xrpl.wallet import Wallet
 
 
@@ -58,57 +59,23 @@ async def main():
 
         # Loan broker signs first.
         print("\n=== Adding loan broker signature ===\n")
-        loan_broker_signature = await client.request(Sign(
-            transaction=loan_set_tx,
-            secret=loan_broker.seed,
-        ))
+        loan_broker_signed = sign(loan_set_tx, loan_broker)
 
-        loan_broker_signature_result = loan_broker_signature.result["tx_json"]
+        print(f"TxnSignature: {loan_broker_signed.txn_signature}")
+        print(f"SigningPubKey: {loan_broker_signed.signing_pub_key}\n")
+        print(f"Signed loan_set_tx for borrower to sign over:\n{json.dumps(loan_broker_signed.to_xrpl(), indent=2)}")
 
-        print(f"TxnSignature: {loan_broker_signature_result['TxnSignature']}")
-        print(f"SigningPubKey: {loan_broker_signature_result['SigningPubKey']}\n")
-        print(f"Signed loan_set_tx for borrower to sign over:\n{json.dumps(loan_broker_signature_result, indent=2)}")
-        
         # Borrower signs second.
         print("\n=== Adding borrower signature ===\n")
-        borrower_signature = await client.request(Sign(
-            transaction=Transaction.from_xrpl(loan_broker_signature_result),
-            secret=borrower.seed,
-            signature_target="CounterpartySignature",
-        ))
+        fully_signed = sign_loan_set_by_counterparty(borrower, loan_broker_signed)
 
-        borrower_signature_result = borrower_signature.result["tx_json"]
-
-        print(f"Borrower TxnSignature: {borrower_signature_result['CounterpartySignature']['TxnSignature']}")
-        print(f"Borrower SigningPubKey: {borrower_signature_result['CounterpartySignature']['SigningPubKey']}")
-
-        print(f"\nFully signed LoanSet transaction:\n{json.dumps(borrower_signature_result, indent=2)}")
+        print(f"Borrower TxnSignature: {fully_signed.tx.counterparty_signature.txn_signature}")
+        print(f"Borrower SigningPubKey: {fully_signed.tx.counterparty_signature.signing_pub_key}")
+        print(f"\nFully signed LoanSet transaction:\n{json.dumps(fully_signed.tx.to_xrpl(), indent=2)}")
 
         # Submit and wait for validation ----------------------
         print("\n=== Submitting signed LoanSet transaction ===\n")
-
-        # Submit the transaction
-        submit_result = await client.request(
-            SubmitOnly(tx_blob=borrower_signature.result["tx_blob"])
-        )
-        tx_hash = submit_result.result["tx_json"]["hash"]
-
-        # Helper function to check tx hash is validated
-        async def validate_tx(hash, max_retries=20):
-            for _ in range(max_retries):
-                await asyncio.sleep(1)
-                try:
-                    response = await client.request(Tx(transaction=hash))
-                    if response.result.get("validated"):
-                        return response
-                except Exception:
-                    pass  # Transaction not validated yet, check again
-            raise Exception(
-                f"Transaction {hash} not validated after {max_retries} attempts."
-            )
-
-        # Validate the transaction
-        submit_response = await validate_tx(tx_hash)
+        submit_response = await submit_and_wait(fully_signed.tx, client)
 
         if submit_response.result["meta"]["TransactionResult"] != "tesSUCCESS":
             result_code = submit_response.result["meta"]["TransactionResult"]

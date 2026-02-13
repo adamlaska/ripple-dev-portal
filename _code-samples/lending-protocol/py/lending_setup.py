@@ -5,7 +5,8 @@ import json
 
 from xrpl.asyncio.clients import AsyncWebsocketClient
 from xrpl.asyncio.wallet import generate_faucet_wallet
-from xrpl.asyncio.transaction import submit_and_wait, autofill
+from xrpl.asyncio.transaction import submit_and_wait, autofill, sign
+from xrpl.transaction import sign_loan_set_by_counterparty
 from xrpl.models import (
     AccountObjects,
     Batch,
@@ -21,11 +22,7 @@ from xrpl.models import (
     MPTokenIssuanceCreateFlag,
     Payment,
     PermissionedDomainSet,
-    Sign,
-    SubmitOnly,
     TicketCreate,
-    Transaction,
-    Tx,
     VaultCreate,
     VaultDeposit,
 )
@@ -292,8 +289,8 @@ async def main():
 
         # Create 2 identical loans with complete repayment due in 30 days
         
-        # Helper function to create and sign a LoanSet transaction
-        async def create_signed_loan_set_tx(ticket_sequence):
+        # Helper function to create, sign, and submit a LoanSet transaction
+        async def create_loan(ticket_sequence):
             loan_set_tx = await autofill(LoanSet(
                 account=loan_broker.address,
                 counterparty=borrower.address,
@@ -308,53 +305,15 @@ async def main():
                 ticket_sequence=ticket_sequence,
             ), client)
 
-            loan_broker_signature = await client.request(
-                Sign(
-                    transaction=loan_set_tx,
-                    secret=loan_broker.seed,
-                )
-            )
+            loan_broker_signed = sign(loan_set_tx, loan_broker)
+            fully_signed = sign_loan_set_by_counterparty(borrower, loan_broker_signed)
+            submit_response = await submit_and_wait(fully_signed.tx, client)
 
-            borrower_signature = await client.request(
-                Sign(
-                    transaction=Transaction.from_xrpl(loan_broker_signature.result["tx_json"]),
-                    secret=borrower.seed,
-                    signature_target="CounterpartySignature",
-                )
-            )
-
-            return borrower_signature.result["tx_blob"]
-
-        # Create and submit both loans
-        signed_loan_1, signed_loan_2 = await asyncio.gather(
-            create_signed_loan_set_tx(tickets[0]),
-            create_signed_loan_set_tx(tickets[1]),
-        )
-
-        submit_loan_1, submit_loan_2 = await asyncio.gather(
-            client.request(SubmitOnly(tx_blob=signed_loan_1)),
-            client.request(SubmitOnly(tx_blob=signed_loan_2)),
-        )
-        hash_1 = submit_loan_1.result["tx_json"]["hash"]
-        hash_2 = submit_loan_2.result["tx_json"]["hash"]
-
-        # Helper function to check tx hash is validated
-        async def validate_tx(hash, max_retries=20):
-            for _ in range(max_retries):
-                await asyncio.sleep(1)
-                try:
-                    response = await client.request(Tx(transaction=hash))
-                    if response.result.get("validated"):
-                        return response
-                except Exception:
-                    pass  # Transaction not validated yet, check again
-            raise Exception(
-                f"Transaction {hash} not validated after {max_retries} attempts."
-            )
+            return submit_response
 
         submit_response_1, submit_response_2 = await asyncio.gather(
-            validate_tx(hash_1),
-            validate_tx(hash_2),
+            create_loan(tickets[0]),
+            create_loan(tickets[1]),
         )
 
         loan_id_1 = next(
