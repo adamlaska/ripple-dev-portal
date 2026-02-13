@@ -72,7 +72,7 @@ To get started, import the necessary libraries and instantiate a client to conne
 {% /tab %}
 {% tab label="Python" %}
 - `xrpl`: Used for XRPL client connection, transaction submission, and wallet handling.
-- `asyncio` and `json`: Used for async execution and JSON formatting.
+- `json`: Used for loading and formatting JSON data.
 - `os`, `subprocess`, and `sys`: Used to run tutorial set up scripts.
 
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_clawback.py" language="py" before="# This step checks" /%}
