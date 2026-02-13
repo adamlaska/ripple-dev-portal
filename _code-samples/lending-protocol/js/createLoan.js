@@ -54,64 +54,29 @@ console.log(JSON.stringify(loanSetTx, null, 2))
 
 // Loan broker signs first
 console.log(`\n=== Adding loan broker signature ===\n`)
-const loanBrokerSignature = await client.request({
-  command: 'sign',
-  tx_json: loanSetTx,
-  secret: loanBroker.seed
-})
+const loanBrokerSigned = loanBroker.sign(loanSetTx)
+const loanBrokerSignedTx = xrpl.decode(loanBrokerSigned.tx_blob)
 
-const loanBrokerSignatureResult = loanBrokerSignature.result.tx_json
-
-console.log(`TxnSignature: ${loanBrokerSignatureResult.TxnSignature}`)
-console.log(`SigningPubKey: ${loanBrokerSignatureResult.SigningPubKey}\n`)
-console.log(`Signed loanSetTx for borrower to sign over:\n${JSON.stringify(loanBrokerSignatureResult, null, 2)}`)
+console.log(`TxnSignature: ${loanBrokerSignedTx.TxnSignature}`)
+console.log(`SigningPubKey: ${loanBrokerSignedTx.SigningPubKey}\n`)
+console.log(`Signed loanSetTx for borrower to sign over:\n${JSON.stringify(loanBrokerSignedTx, null, 2)}`)
 
 // Borrower signs second
 console.log(`\n=== Adding borrower signature ===\n`)
+const fullySigned = xrpl.signLoanSetByCounterparty(borrower, loanBrokerSignedTx)
 
-const borrowerSignature = await client.request({
-  command: 'sign',
-  tx_json: loanBrokerSignatureResult,
-  secret: borrower.seed,
-  signature_target: 'CounterpartySignature'
-})
-
-const borrowerSignatureResult = borrowerSignature.result.tx_json
-
-console.log(`Borrower TxnSignature: ${borrowerSignatureResult.CounterpartySignature.TxnSignature}`)
-console.log(`Borrower SigningPubKey: ${borrowerSignatureResult.CounterpartySignature.SigningPubKey}`)
+console.log(`Borrower TxnSignature: ${fullySigned.tx.CounterpartySignature.TxnSignature}`)
+console.log(`Borrower SigningPubKey: ${fullySigned.tx.CounterpartySignature.SigningPubKey}`)
 
 // Validate the transaction structure before submitting.
-xrpl.validate(borrowerSignatureResult)
-console.log(`\nFully signed LoanSet transaction:\n${JSON.stringify(borrowerSignatureResult, null, 2)}`)
+xrpl.validate(fullySigned.tx)
+console.log(`\nFully signed LoanSet transaction:\n${JSON.stringify(fullySigned.tx, null, 2)}`)
 
 // Submit and wait for validation ----------------------
 console.log(`\n=== Submitting signed LoanSet transaction ===\n`)
 
-// Submit the transaction
-const submitResult = await client.submit(borrowerSignatureResult)
-const txHash = submitResult.result.tx_json.hash
+const submitResponse = await client.submitAndWait(fullySigned.tx)
 
-// Helper function to check tx hash is validated
-async function validateTx (hash, maxRetries = 20) {
-  for (let i = 0; i < maxRetries; i++) {
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    try {
-      const tx = await client.request({ command: 'tx', transaction: hash })
-      if (tx.result.validated) {
-        return tx
-      }
-    } catch (error) {
-      // Transaction not validated yet, check again
-    }
-  }
-  console.error(`Error: Transaction ${hash} not validated after ${maxRetries} attempts.`)
-  await client.disconnect()
-  process.exit(1)
-}
-
-// Validate the transaction
-const submitResponse = await validateTx(txHash)
 if (submitResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
   const resultCode = submitResponse.result.meta.TransactionResult
   console.error('Error: Unable to create loan:', resultCode)
