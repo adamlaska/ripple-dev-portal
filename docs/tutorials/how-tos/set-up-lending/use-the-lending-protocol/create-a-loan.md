@@ -97,7 +97,7 @@ The loan terms include:
 
 ### 4. Add loan broker signature
 
-The loan broker (the `Account`) signs the transaction first, using the [sign method][]:
+The loan broker (the `Account`) signs the transaction first, adding their `TxnSignature` and `SigningPubKey` to the `LoanSet` transaction object.
 
 {% tabs %}
 {% tab label="JavaScript" %}
@@ -105,11 +105,9 @@ The loan broker (the `Account`) signs the transaction first, using the [sign met
 {% /tab %}
 {% /tabs %}
 
-The loan broker adds their `TxnSignature` and `SigningPubKey` to the `LoanSet` transaction object.
-
 ### 5. Add borrower signature
 
-The borrower (the `Counterparty`) signs the transaction second, using the [sign method][]:
+The borrower (the `Counterparty`) signs the transaction second. Their `TxnSignature` and `SigningPubKey` are stored in a `CounterpartySignature` field, which is added to the `LoanSet` transaction object.
 
 {% tabs %}
 {% tab label="JavaScript" %}
@@ -117,11 +115,9 @@ The borrower (the `Counterparty`) signs the transaction second, using the [sign 
 {% /tab %}
 {% /tabs %}
 
-The borrower must specify `signature_target: 'CounterpartySignature'`. This adds the borrower's signatures to a `CounterpartySignature` object, which includes the borrower's `TxnSignature` and `SigningPubKey`.
-
 ### 6. Submit LoanSet transaction
 
-Sign and submit the fully signed `LoanSet` transaction to the XRP Ledger.
+Submit the fully signed `LoanSet` transaction to the XRP Ledger.
 
 {% tabs %}
 {% tab label="JavaScript" %}
