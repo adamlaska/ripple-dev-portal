@@ -34,7 +34,8 @@ To complete this tutorial, you should:
 - Have a basic understanding of the XRP Ledger.
 - Have access to an existing vault. This tutorial uses a preconfigured vault. To create your own vault, see [Create a Single Asset Vault](./create-a-single-asset-vault.md).
 - Have an XRP Ledger client library set up in your development environment. This page provides examples for the following:
-  - **JavaScript** with the [xrpl.js library](https://github.com/XRPLF/xrpl.js). See [Get Started Using JavaScript](../../../javascript/build-apps/get-started.md) for setup steps.
+  - **JavaScript** with the [xrpl.js library][]. See [Get Started Using JavaScript][] for setup steps.
+  - **Python** with the [xrpl-py library][]. See [Get Started Using Python][] for setup steps.
 
 ## Source Code
 
@@ -46,25 +47,46 @@ You can find the complete source code for this tutorial's examples in the {% rep
 
 {% tabs %}
 {% tab label="JavaScript" %}
-From the code sample folder, use npm to install dependencies:
+From the code sample folder, use `npm` to install dependencies:
 
 ```bash
 npm install xrpl
 ```
 
 {% /tab %}
+{% tab label="Python" %}
+From the code sample folder, use `pip` to install dependencies:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install xrpl-py
+```
+{% /tab %}
 {% /tabs %}
 
 ### 2. Set up client and accounts
 
-To get started, import the necessary libraries and instantiate a client to connect to the XRPL. This example imports:
+To get started, import the necessary libraries and instantiate a client to connect to the XRPL.
+
+{% tabs %}
+{% tab label="JavaScript" %}
+This example imports:
 
 - `xrpl`: Used for XRPL client connection and transaction handling.
 - `fs` and `child_process`: Used to run tutorial setup scripts.
 
-{% tabs %}
-{% tab label="JavaScript" %}
-{% code-snippet file="/_code-samples/vaults/js/deposit.js" language="js" from="import xrpl" before="// You can replace" /%}
+{% code-snippet file="/_code-samples/vaults/js/deposit.js" language="js" before="// You can replace" /%}
+{% /tab %}
+
+{% tab label="Python" %}
+This example imports:
+
+- `json`: Used for loading and formatting JSON data.
+- `os`, `subprocess`, `sys`: Used for file handling and running setup scripts.
+- `xrpl`: Used for XRPL client connection and transaction handling.
+
+{% code-snippet file="/_code-samples/vaults/py/deposit.py" language="py" before="# You can replace" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -73,10 +95,18 @@ Provide the depositing account and specify the vault details. The depositor must
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/deposit.js" language="js" from="// You can replace" before="// Get initial vault" /%}
+
+This example uses an existing vault, depositor account, and MPT from the `vaultSetup.js` script, but you can replace these values with your own.
+{% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/deposit.py" language="py" from="# You can replace" before="# Get initial vault" /%}
+
+This example uses an existing vault, depositor account, and MPT from the `vault_setup.py` script, but you can replace these values with your own.
 {% /tab %}
 {% /tabs %}
 
-This example uses an existing vault, depositor account, and MPT from the `vaultSetup.js` script, but you can replace these values with your own. The preconfigured depositor account has:
+The preconfigured depositor account has:
 
 - Valid [Credentials](../../../../concepts/decentralized-storage/credentials.md) in the vault's [Permissioned Domain](../../../../concepts/tokens/decentralized-exchange/permissioned-domains.md).
 - A positive balance of the MPT in the vault.
@@ -89,6 +119,10 @@ Use the [vault_info method][] to retrieve the vault's current state, including i
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/deposit.js" language="js" from="// Get initial vault" before="// Check depositor's asset balance" /%}
 {% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/deposit.py" language="py" from="# Get initial vault" before="# Check depositor's asset balance" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 4. Check depositor's asset balance
@@ -99,6 +133,10 @@ Before depositing, verify that the depositor has sufficient balance of the vault
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/deposit.js" language="js" from="// Check depositor's asset balance" before="// Prepare VaultDeposit" /%}
 {% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/deposit.py" language="py" from="# Check depositor's asset balance" before="# Prepare VaultDeposit" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 5. Prepare VaultDeposit transaction
@@ -108,10 +146,16 @@ Create a [VaultDeposit transaction][] object to deposit assets into the vault.
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/deposit.js" language="js" from="// Prepare VaultDeposit" before="// Submit VaultDeposit" /%}
-{% /tab %}
-{% /tabs %}
 
 The transaction specifies the depositing account, the vault's unique identifier (`VaultID`), and the amount to deposit. The asset in the `Amount` field must match the vault's asset type, otherwise the transaction will fail with a `tecWRONG_ASSET` error.
+{% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/deposit.py" language="py" from="# Prepare VaultDeposit" before="# Submit VaultDeposit" /%}
+
+The transaction specifies the depositing account, the vault's unique identifier (`vault_id`), and the amount to deposit. The asset in the `amount` field must match the vault's asset type, otherwise the transaction will fail with a `tecWRONG_ASSET` error.
+{% /tab %}
+{% /tabs %}
 
 ### 6. Submit VaultDeposit transaction
 
@@ -120,6 +164,10 @@ Submit the `VaultDeposit` transaction to the XRP Ledger.
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/deposit.js" language="js" from="// Submit VaultDeposit" before="// Extract vault state" /%}
+{% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/deposit.py" language="py" from="# Submit VaultDeposit" before="# Extract vault state" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -142,6 +190,10 @@ After depositing, verify the vault's updated state. You can extract this informa
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/deposit.js" language="js" from="// Extract vault state" before="// Get the depositor's" /%}
 {% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/deposit.py" language="py" from="# Extract vault state" before="# Get the depositor's" /%}
+{% /tab %}
 {% /tabs %}
 
 Finally, check that the depositing account has received the shares.
@@ -149,6 +201,10 @@ Finally, check that the depositing account has received the shares.
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/deposit.js" language="js" from="// Get the depositor's" /%}
+{% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/deposit.py" language="py" from="# Get the depositor's" /%}
 {% /tab %}
 {% /tabs %}
 
