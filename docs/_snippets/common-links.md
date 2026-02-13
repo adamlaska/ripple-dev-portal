@@ -370,6 +370,7 @@
 [get_counts command]: /docs/references/http-websocket-apis/admin-api-methods/status-and-debugging-methods/get_counts.md
 [get_counts method]: /docs/references/http-websocket-apis/admin-api-methods/status-and-debugging-methods/get_counts.md
 [Get Started Using JavaScript]: /docs/tutorials/javascript/build-apps/get-started.md
+[Get Started Using Python]: /docs/tutorials/python/build-apps/get-started.md
 [hexadecimal]: https://en.wikipedia.org/wiki/Hexadecimal
 [identifying hash]: /docs/concepts/transactions/index.md#identifying-transactions
 [json command]: /docs/references/http-websocket-apis/public-api-methods/utility-methods/json.md
@@ -486,3 +487,4 @@
 [wallet_propose command]: /docs/references/http-websocket-apis/admin-api-methods/key-generation-methods/wallet_propose.md
 [wallet_propose method]: /docs/references/http-websocket-apis/admin-api-methods/key-generation-methods/wallet_propose.md
 [xrpl.js library]: https://github.com/XRPLF/xrpl.js
+[xrpl-py library]: https://github.com/XRPLF/xrpl-py
