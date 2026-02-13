@@ -102,13 +102,17 @@ Create the [LoanBrokerCoverDeposit transaction][] object.
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/coverDepositAndWithdraw.js" language="js" from="// Prepare LoanBrokerCoverDeposit" before="// Sign, submit, and wait for deposit" /%}
+
+The `Amount` field specifies the MPT and amount to deposit as first-loss capital.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_deposit_and_withdraw.py" language="py" from="# Prepare LoanBrokerCoverDeposit" before="# Sign, submit, and wait for deposit" /%}
+
+The `amount` field specifies the MPT and amount to deposit as first-loss capital.
 {% /tab %}
 {% /tabs %}
 
-The `Amount` field specifies the MPT and amount to deposit as first-loss capital. If the transaction succeeds, the amount is deposited and held in the pseudo-account associated with the `LoanBroker` entry.
+If the transaction succeeds, the amount is deposited and held in the pseudo-account associated with the `LoanBroker` entry.
 
 ### 4. Submit LoanBrokerCoverDeposit transaction
 

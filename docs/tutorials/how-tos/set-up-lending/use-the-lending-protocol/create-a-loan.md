@@ -103,11 +103,6 @@ Create the [LoanSet transaction][] object with the loan terms.
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoan.js" language="js" from="// Prepare LoanSet" before="// Loan broker signs first" /%}
-{% /tab %}
-{% tab label="Python" %}
-{% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# Prepare LoanSet" before="# Loan broker signs first" /%}
-{% /tab %}
-{% /tabs %}
 
 The `Account` field is the loan broker, and the `Counterparty` field is the borrower. These fields can be swapped, but determine the signing order: the `Account` signs first, and the `Counterparty` signs second.
 
@@ -119,6 +114,22 @@ The loan terms include:
 - `GracePeriod`: The number of seconds after a missed payment before the loan can be defaulted (604800 = 7 days).
 - `LoanOriginationFee`: A one-time fee charged when the loan is created, paid in the borrowed asset.
 - `LoanServiceFee`: A fee charged with every loan payment, paid in the borrowed asset.
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# Prepare LoanSet" before="# Loan broker signs first" /%}
+
+The `account` field is the loan broker, and the `counterparty` field is the borrower. These fields can be swapped, but determine the signing order: the `account` signs first, and the `counterparty` signs second.
+
+The loan terms include:
+- `principal_requested`: The amount of an asset requested by the borrower. You don't have to specify the type of asset in this field.
+- `interest_rate`: The annualized interest rate in 1/10th basis points (500 = 0.5%).
+- `payment_total`: The number of payments to be made.
+- `payment_interval`: The number of seconds between payments (2592000 = 30 days).
+- `grace_period`: The number of seconds after a missed payment before the loan can be defaulted (604800 = 7 days).
+- `loan_origination_fee`: A one-time fee charged when the loan is created, paid in the borrowed asset.
+- `loan_service_fee`: A fee charged with every loan payment, paid in the borrowed asset.
+{% /tab %}
+{% /tabs %}
 
 ### 4. Add loan broker signature
 

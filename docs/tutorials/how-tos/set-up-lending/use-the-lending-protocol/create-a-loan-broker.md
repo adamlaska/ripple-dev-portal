@@ -106,7 +106,7 @@ Create the [LoanBrokerSet transaction][] object.
 {% /tab %}
 {% /tabs %}
 
-The `ManagementFeeRate` is set in 1/10th basis points. A value of `1000` equals 1% (100 basis points).
+The management fee rate is set in 1/10th basis points. A value of `1000` equals 1% (100 basis points).
 
 ### 4. Submit LoanBrokerSet transaction
 
