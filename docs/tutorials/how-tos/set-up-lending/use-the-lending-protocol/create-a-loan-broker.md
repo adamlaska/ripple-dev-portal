@@ -29,6 +29,7 @@ To complete this tutorial, you should:
 - Have a basic understanding of the XRP Ledger.
 - Have an XRP Ledger client library set up in your development environment. This page provides examples for the following:
   - **JavaScript** with the [xrpl.js library][]. See [Get Started Using JavaScript][] for setup steps.
+  - **Python** with the [xrpl-py library][]. See [Get Started Using Python][] for setup steps.
 
 ## Source Code
 
@@ -40,24 +41,40 @@ You can find the complete source code for this tutorial's examples in the {% rep
 
 {% tabs %}
 {% tab label="JavaScript" %}
-From the code sample folder, use npm to install dependencies:
+From the code sample folder, use `npm` to install dependencies.
 
 ```bash
 npm install xrpl
 ```
+{% /tab %}
+{% tab label="Python" %}
+From the code sample folder, set up a virtual environment and use `pip` to install dependencies.
 
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
 {% /tab %}
 {% /tabs %}
 
 ### 2. Set up client and accounts
 
 To get started, import the necessary libraries and instantiate a client to connect to the XRPL. This example imports:
-- `xrpl`: Used for XRPL client connection and transaction handling.
-- `fs` and `child_process`: Used to run tutorial set up scripts.
 
 {% tabs %}
 {% tab label="JavaScript" %}
+- `xrpl`: Used for XRPL client connection, transaction submission, and wallet handling.
+- `fs` and `child_process`: Used to run tutorial set up scripts.
+
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoanBroker.js" language="js" before="// This step checks" /%}
+{% /tab %}
+{% tab label="Python" %}
+- `xrpl`: Used for XRPL client connection, transaction submission, and wallet handling.
+- `json`: Used for loading and formatting JSON data.
+- `os`, `subprocess`, and `sys`: Used to run tutorial set up scripts.
+
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan_broker.py" language="py" before="# This step checks" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -66,22 +83,30 @@ Next, load the vault owner account and vault ID. The vault owner will also be th
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoanBroker.js" language="js" from="// This step checks" before="// Prepare LoanBrokerSet" /%}
+
+This example uses preconfigured accounts and vault data from the `lendingSetup.js` script, but you can replace `loanBroker` and `vaultID` with your own values.
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan_broker.py" language="py" from="# This step checks" before="# Prepare LoanBrokerSet" /%}
+
+This example uses preconfigured accounts and vault data from the `lending_setup.py` script, but you can replace `loan_broker` and `vault_id` with your own values.
 {% /tab %}
 {% /tabs %}
 
-This example uses preconfigured accounts and vault data from the `lendingSetup.js` script, but you can replace `loanBroker` and `vaultID` with your own values.
-
 ### 3. Prepare LoanBrokerSet transaction
 
-Create the [LoanBrokerSet transaction][] object:
+Create the [LoanBrokerSet transaction][] object.
 
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoanBroker.js" language="js" from="// Prepare LoanBrokerSet" before="// Submit, sign" /%}
 {% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan_broker.py" language="py" from="# Prepare LoanBrokerSet" before="# Submit, sign" /%}
+{% /tab %}
 {% /tabs %}
 
-The `ManagementFeeRate` is set in 1/10th basis points. A value of `1000` equals 1% (100 basis points).
+The management fee rate is set in 1/10th basis points. A value of `1000` equals 1% (100 basis points).
 
 ### 4. Submit LoanBrokerSet transaction
 
@@ -90,6 +115,9 @@ Sign and submit the `LoanBrokerSet` transaction to the XRP Ledger.
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoanBroker.js" language="js" from="// Submit, sign" before="// Extract loan broker" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan_broker.py" language="py" from="# Submit, sign" before="# Extract loan broker" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -102,6 +130,9 @@ Retrieve the loan broker's information from the transaction result by checking f
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/lending-protocol/js/createLoanBroker.js" language="js" from="// Extract loan broker" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/lending-protocol/py/create_loan_broker.py" language="py" from="# Extract loan broker" /%}
 {% /tab %}
 {% /tabs %}
 

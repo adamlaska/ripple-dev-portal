@@ -1,7 +1,7 @@
+// Setup script for lending protocol tutorials
+
 import xrpl from 'xrpl'
 import fs from 'fs'
-
-// Setup script for lending protocol tutorials
 
 process.stdout.write('Setting up tutorial: 0/6\r')
 
@@ -262,73 +262,35 @@ process.stdout.write('Setting up tutorial: 5/6\r')
 // Suppress unnecessary console warning from autofilling LoanSet.
 console.warn = () => {}
 
-// Helper function to create and sign a LoanSet transaction
-async function createSignedLoanSetTx (ticketSequence) {
+// Helper function to create, sign, and submit a LoanSet transaction
+async function createLoan (ticketSequence) {
   const loanSetTx = await client.autofill({
     TransactionType: 'LoanSet',
     Account: loanBroker.address,
     Counterparty: borrower.address,
     LoanBrokerID: loanBrokerID,
-    PrincipalRequested: 1000,
+    PrincipalRequested: '1000',
     InterestRate: 500,
     PaymentTotal: 1,
     PaymentInterval: 2592000,
-    LoanOriginationFee: 100,
-    LoanServiceFee: 10,
+    LoanOriginationFee: '100',
+    LoanServiceFee: '10',
     Sequence: 0,
     TicketSequence: ticketSequence
   })
 
-  const loanBrokerSignature = await client.request({
-    command: 'sign',
-    tx_json: loanSetTx,
-    secret: loanBroker.seed
-  })
+  const loanBrokerSigned = loanBroker.sign(loanSetTx)
+  const loanBrokerSignedTx = xrpl.decode(loanBrokerSigned.tx_blob)
 
-  const borrowerSignature = await client.request({
-    command: 'sign',
-    tx_json: loanBrokerSignature.result.tx_json,
-    secret: borrower.seed,
-    signature_target: 'CounterpartySignature'
-  })
+  const fullySigned = xrpl.signLoanSetByCounterparty(borrower, loanBrokerSignedTx)
+  const submitResponse = await client.submitAndWait(fullySigned.tx)
 
-  return borrowerSignature.result.tx_json
-}
-
-// Create and submit both loans
-const [signedLoan1, signedLoan2] = await Promise.all([
-  createSignedLoanSetTx(tickets[0]),
-  createSignedLoanSetTx(tickets[1])
-])
-
-const [submitLoan1, submitLoan2] = await Promise.all([
-  client.submit(signedLoan1),
-  client.submit(signedLoan2)
-])
-const hash1 = submitLoan1.result.tx_json.hash
-const hash2 = submitLoan2.result.tx_json.hash
-
-// Helper function to check tx hash is validated
-async function validateTx (hash, maxRetries = 20) {
-  for (let i = 0; i < maxRetries; i++) {
-    await new Promise(resolve => setTimeout(resolve, 1000))
-    try {
-      const tx = await client.request({ command: 'tx', transaction: hash })
-      if (tx.result.validated) {
-        return tx
-      }
-    } catch (error) {
-      // Transaction not validated yet, check again
-    }
-  }
-  console.error(`Error: Transaction ${hash} not validated after ${maxRetries} attempts.`)
-  await client.disconnect()
-  process.exit(1)
+  return submitResponse
 }
 
 const [submitResponse1, submitResponse2] = await Promise.all([
-  validateTx(hash1),
-  validateTx(hash2)
+  createLoan(tickets[0]),
+  createLoan(tickets[1])
 ])
 
 const loanID1 = submitResponse1.result.meta.AffectedNodes.find(node =>
