@@ -56,7 +56,7 @@ npm install xrpl
 
 {% /tab %}
 {% tab label="Python" %}
-From the code sample folder, use `pip` to install dependencies:
+From the code sample folder, set up a virtual environment and use `pip` to install dependencies:
 
 ```bash
 python -m venv .venv
@@ -69,20 +69,16 @@ pip install -r requirements.txt
 
 ### 2. Set up client and accounts
 
-To get started, import the necessary libraries and instantiate a client to connect to the XRPL.
+To get started, import the necessary libraries and instantiate a client to connect to the XRPL. This example imports:
 
 {% tabs %}
 {% tab label="JavaScript" %}
-This example imports:
-
 - `xrpl`: Used for XRPL client connection and transaction handling.
 - `fs` and `child_process`: Used to run tutorial setup scripts.
 
 {% code-snippet file="/_code-samples/vaults/js/createVault.js" language="js" before="// Create and fund" /%}
 {% /tab %}
 {% tab label="Python" %}
-This example imports:
-
 - `json`: Used for loading and formatting JSON data.
 - `os`, `subprocess`, `sys`: Used for file handling and running setup scripts.
 - `xrpl`: Used for XRPL client connection and transaction handling.

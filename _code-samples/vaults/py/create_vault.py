@@ -27,8 +27,8 @@ client = JsonRpcClient("https://s.devnet.rippletest.net:51234")
 vault_owner = generate_faucet_wallet(client)
 
 # You can replace these values with your own
-mpt_issuance_id = setup_data["mptIssuanceId"]
-domain_id = setup_data["domainId"]
+mpt_issuance_id = setup_data["mpt_issuance_id"]
+domain_id = setup_data["domain_id"]
 
 print(f"Vault owner address: {vault_owner.address}")
 print(f"MPT issuance ID: {mpt_issuance_id}")

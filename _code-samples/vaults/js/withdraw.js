@@ -52,11 +52,13 @@ try {
     ledger_index: "validated"
   })
 
-  const shareBalance = shareBalanceResult.result.node.MPTAmount
+  const shareBalance = shareBalanceResult.result.node?.MPTAmount
   console.log(`Shares held: ${shareBalance}`)
 } catch (error) {
   if (error.data?.error === 'entryNotFound') {
     console.error(`Error: The depositor doesn't hold any vault shares with ID: ${shareMPTIssuanceId}.`)
+  } else {
+    console.error(`Error checking MPT: ${error}`)
   }
   await client.disconnect()
   process.exit(1)

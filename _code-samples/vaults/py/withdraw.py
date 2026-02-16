@@ -23,9 +23,9 @@ client = JsonRpcClient("https://s.devnet.rippletest.net:51234")
 
 # You can replace these values with your own
 depositor = Wallet.from_seed(setup_data["depositor"]["seed"])
-vault_id = setup_data["vaultID"]
-asset_mpt_issuance_id = setup_data["mptIssuanceId"]
-share_mpt_issuance_id = setup_data["vaultShareMPTIssuanceId"]
+vault_id = setup_data["vault_id"]
+asset_mpt_issuance_id = setup_data["mpt_issuance_id"]
+share_mpt_issuance_id = setup_data["vault_share_mpt_issuance_id"]
 
 print(f"Depositor address: {depositor.address}")
 print(f"Vault ID: {vault_id}")

@@ -69,7 +69,9 @@ try {
   }
 } catch (error) {
   if (error.data?.error === 'entryNotFound') {
-    console.log(`Error: The depositor doesn't hold any assets with ID: ${assetMPTIssuanceId}`)
+    console.error(`Error: The depositor doesn't hold any assets with ID: ${assetMPTIssuanceId}`)
+  } else {
+    console.error(`Error checking MPT: ${error}`)
   }
   await client.disconnect()
   process.exit(1)
