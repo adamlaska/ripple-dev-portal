@@ -60,7 +60,7 @@ From the code sample folder, use `pip` to install dependencies:
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install xrpl-py
+pip install -r requirements.txt
 ```
 {% /tab %}
 {% /tabs %}

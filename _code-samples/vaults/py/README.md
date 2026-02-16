@@ -9,7 +9,7 @@ Install dependencies before running any examples:
 ```sh
 python -m venv .venv
 source .venv/bin/activate
-pip install xrpl-py
+pip install -r requirements.txt
 ```
 
 ---

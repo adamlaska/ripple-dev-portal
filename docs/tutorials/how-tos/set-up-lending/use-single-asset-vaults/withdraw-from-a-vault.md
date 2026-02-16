@@ -55,7 +55,7 @@ From the code sample folder, use `pip` to install dependencies:
 ```bash
 python -m venv .venv
 source .venv/bin/activate
-pip install xrpl-py
+pip install -r requirements.txt
 ```
 
 {% /tab %}
@@ -70,6 +70,7 @@ To get started, import the necessary libraries and instantiate a client to conne
 This example imports:
 
 - `xrpl`: Used for XRPL client connection and transaction handling.
+- `fs` and `child_process`: Used to run tutorial setup scripts.
 
 {% code-snippet file="/_code-samples/vaults/js/withdraw.js" language="js" before="// You can replace" /%}
 {% /tab %}
@@ -173,13 +174,13 @@ Submit the `VaultWithdraw` transaction to the XRP Ledger.
 When the transaction succeeds:
 
 - The vault calculates how many shares need to be burned to provide the requested asset amount.
-- The vault transfers the assets from its pseudo-account to the depositor account (or the `Destination` account if specified).
+- The vault transfers the assets from its pseudo-account to the depositor account (or the destination account if specified).
 
 {% admonition type="info" name="Note" %}
 Transfer fees are not charged on `VaultWithdraw` transactions.
 {% /admonition %}
 
-### 6. Verify withdrawal
+### 7. Verify withdrawal
 
 After withdrawing, check the vault's state. You can extract this information directly from the transaction metadata.
 

@@ -77,6 +77,8 @@ except Exception as error:
     error_data = getattr(error, 'data', {})
     if 'error' in error_data and error_data['error'] == 'entryNotFound':
         print(f"Error: The depositor doesn't hold any assets with ID: {asset_mpt_issuance_id}", file=sys.stderr)
+    else:
+        print(f"Error checking MPT: {error}", file=sys.stderr)
     sys.exit(1)
 
 # Prepare VaultDeposit transaction

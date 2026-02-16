@@ -66,6 +66,8 @@ except Exception as error:
     error_data = getattr(error, 'data', {})
     if 'error' in error_data and error_data['error'] == 'entryNotFound':
         print(f"Error: The depositor doesn't hold any vault shares with ID: {share_mpt_issuance_id}.", file=sys.stderr)
+    else:
+        print(f"Error checking MPT: {error}", file=sys.stderr)
     sys.exit(1)
 
 # Prepare VaultWithdraw transaction
@@ -114,7 +116,7 @@ if vault_node:
         print(f"  Assets Available: {vault_fields['AssetsAvailable']}")
 
 # Get the depositor's share balance
-print("\n=== Depositor's share balance ==")
+print("\n=== Depositor's share balance ===")
 depositor_share_node = None
 for node in affected_nodes:
     if "ModifiedNode" in node or "DeletedNode" in node:
@@ -135,7 +137,7 @@ if depositor_share_node:
         print(f"Shares held: {share_fields['MPTAmount']}")
 
 # Get the depositor's asset balance
-print("\n=== Depositor's asset balance ==")
+print("\n=== Depositor's asset balance ===")
 depositor_asset_node = None
 for node in affected_nodes:
     if "ModifiedNode" in node:
