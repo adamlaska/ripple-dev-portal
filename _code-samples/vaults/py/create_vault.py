@@ -14,7 +14,7 @@ from xrpl.wallet import generate_faucet_wallet
 # Auto-run setup if needed
 if not os.path.exists("vault_setup.json"):
     print("\n=== Vault setup data doesn't exist. Running setup script... ===\n")
-    subprocess.run(["python", "vault_setup.py"], check=True)
+    subprocess.run([sys.executable, "vault_setup.py"], check=True)
 
 # Load setup data
 with open("vault_setup.json", "r") as f:
