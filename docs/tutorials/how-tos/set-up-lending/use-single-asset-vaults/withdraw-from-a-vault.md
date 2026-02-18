@@ -29,7 +29,8 @@ To complete this tutorial, you should:
 - Have a basic understanding of the XRP Ledger.
 - Have previously deposited into a vault. This tutorial uses an account that has already deposited into a vault. To deposit your own asset, see [Deposit into a Vault](./deposit-into-a-vault.md).
 - Have an XRP Ledger client library set up in your development environment. This page provides examples for the following:
-  - **JavaScript** with the [xrpl.js library](https://github.com/XRPLF/xrpl.js). See [Get Started Using JavaScript](../../../../tutorials/javascript/build-apps/get-started.md) for setup steps.
+  - **JavaScript** with the [xrpl.js library][]. See [Get Started Using JavaScript][] for setup steps.
+  - **Python** with the [xrpl-py library][]. See [Get Started Using Python][] for setup steps.
 
 ## Source Code
 
@@ -41,10 +42,20 @@ You can find the complete source code for this tutorial's examples in the {% rep
 
 {% tabs %}
 {% tab label="JavaScript" %}
-From the code sample folder, use npm to install dependencies:
+From the code sample folder, use `npm` to install dependencies:
 
 ```bash
 npm install xrpl
+```
+
+{% /tab %}
+{% tab label="Python" %}
+From the code sample folder, set up a virtual environment and use `pip` to install dependencies:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 {% /tab %}
@@ -54,12 +65,20 @@ npm install xrpl
 
 To get started, import the necessary libraries and instantiate a client to connect to the XRPL. This example imports:
 
+{% tabs %}
+{% tab label="JavaScript" %}
 - `xrpl`: Used for XRPL client connection and transaction handling.
 - `fs` and `child_process`: Used to run tutorial setup scripts.
 
-{% tabs %}
-{% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/withdraw.js" language="js" before="// You can replace" /%}
+{% /tab %}
+
+{% tab label="Python" %}
+- `json`: Used for loading and formatting JSON data.
+- `os`, `subprocess`, `sys`: Used for file handling and running setup scripts.
+- `xrpl`: Used for XRPL client connection and transaction handling.
+
+{% code-snippet file="/_code-samples/vaults/py/withdraw.py" language="py" before="# You can replace" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -67,11 +86,17 @@ Provide the depositor account and specify the vault details.
 
 {% tabs %}
 {% tab label="JavaScript" %}
-{% code-snippet file="/_code-samples/vaults/js/withdraw.js" language="js" from="You can replace" before="// Get initial vault" /%}
+{% code-snippet file="/_code-samples/vaults/js/withdraw.js" language="js" from="// You can replace" before="console.log" /%}
+
+This example uses preconfigured accounts and vault data from the `vaultSetup.js` script, but you can replace these values with your own.
+{% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/withdraw.py" language="py" from="# You can replace" before="print" /%}
+
+This example uses preconfigured accounts and vault data from the `vault_setup.py` script, but you can replace these values with your own.
 {% /tab %}
 {% /tabs %}
-
-This example uses preconfigured accounts and vault data from the `vaultSetup.js` script, but you can replace `depositor`, `vaultID`, `assetMPTIssuanceId`, and `shareMPTIssuanceId` with your own values.
 
 ### 3. Check initial vault state
 
@@ -80,6 +105,10 @@ Before withdrawing, check the vault's current state to see its total assets and 
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/withdraw.js" language="js" from="// Get initial vault" before="// Check depositor's share balance" /%}
+{% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/withdraw.py" language="py" from="# Get initial vault" before="# Check depositor's share balance" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -91,6 +120,10 @@ Verify that the depositor account has vault shares to redeem. If not, the transa
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/withdraw.js" language="js" from="// Check depositor's share balance" before="// Prepare VaultWithdraw" /%}
 {% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/withdraw.py" language="py" from="# Check depositor's share balance" before="# Prepare VaultWithdraw" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 5. Prepare VaultWithdraw transaction
@@ -100,15 +133,21 @@ Create a [VaultWithdraw transaction][] to withdraw assets from the vault.
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/withdraw.js" language="js" from="// Prepare VaultWithdraw" before="// Submit VaultWithdraw" /%}
-{% /tab %}
-{% /tabs %}
 
 The transaction defines the account requesting the withdrawal, the vault's unique identifier (`VaultID`), and the amount to withdraw or redeem. You can specify the `Amount` field in two ways:
+{% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/withdraw.py" language="py" from="# Prepare VaultWithdraw" before="# Submit VaultWithdraw" /%}
+
+The transaction defines the account requesting the withdrawal, the vault's unique identifier (`vault_id`), and the amount to withdraw or redeem. You can specify the `amount` field in two ways:
+{% /tab %}
+{% /tabs %}
 
 - **Asset amount**: When you specify an asset amount, the vault burns the necessary shares to provide that amount.
 - **Share amount**: When you specify a share amount, the vault converts those shares into the corresponding asset amount.
 
-While not required, you can provide a `Destination` account to receive the assets; if omitted, assets go to the account specified in the `Account` field.
+While not required, you can provide a destination account to receive the assets; if omitted, assets go to the account submitting the transaction.
 
 {% admonition type="info" name="Note" %}
 You can withdraw from a vault regardless of whether it's private or public. If you hold vault shares, you can always redeem them, even if your credentials in a private vault's permissioned domain have expired or been revoked. This prevents you from being locked out of your funds.
@@ -122,24 +161,32 @@ Submit the `VaultWithdraw` transaction to the XRP Ledger.
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/withdraw.js" language="js" from="// Submit VaultWithdraw " before="// Extract vault state" /%}
 {% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/withdraw.py" language="py" from="# Submit VaultWithdraw" before="# Extract vault state" /%}
+{% /tab %}
 {% /tabs %}
 
 When the transaction succeeds:
 
 - The vault calculates how many shares need to be burned to provide the requested asset amount.
-- The vault transfers the assets from its pseudo-account to the depositor account (or the `Destination` account if specified).
+- The vault transfers the assets from its pseudo-account to the depositor account (or the destination account if specified).
 
 {% admonition type="info" name="Note" %}
 Transfer fees are not charged on `VaultWithdraw` transactions.
 {% /admonition %}
 
-### 6. Verify withdrawal
+### 7. Verify withdrawal
 
 After withdrawing, check the vault's state. You can extract this information directly from the transaction metadata.
 
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/withdraw.js" language="js" from="// Extract vault state" before="// Get the depositor's share balance" /%}
+{% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/withdraw.py" language="py" from="# Extract vault state" before="# Get the depositor's share balance" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -149,6 +196,10 @@ Then, check the depositor's share balance:
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/withdraw.js" language="js" from="// Get the depositor's share balance" before="// Get the depositor's asset balance" /%}
 {% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/withdraw.py" language="py" from="# Get the depositor's share balance" before="# Get the depositor's asset balance" /%}
+{% /tab %}
 {% /tabs %}
 
 Finally, verify the correct asset amount has been received by the depositor account:
@@ -156,6 +207,10 @@ Finally, verify the correct asset amount has been received by the depositor acco
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/withdraw.js" language="js" from="// Get the depositor's asset balance" /%}
+{% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/withdraw.py" language="py" from="# Get the depositor's asset balance" /%}
 {% /tab %}
 {% /tabs %}
 

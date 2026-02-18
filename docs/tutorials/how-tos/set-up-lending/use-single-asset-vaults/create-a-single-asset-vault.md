@@ -35,7 +35,8 @@ To complete this tutorial, you should:
 
 - Have a basic understanding of the XRP Ledger.
 - Have an XRP Ledger client library set up in your development environment. This page provides examples for the following:
-  - **JavaScript** with the [xrpl.js library](https://github.com/XRPLF/xrpl.js). See [Get Started Using JavaScript](../../../javascript/build-apps/get-started.md) for setup steps.
+  - **JavaScript** with the [xrpl.js library][]. See [Get Started Using JavaScript][] for setup steps.
+  - **Python** with the [xrpl-py library][]. See [Get Started Using Python][] for setup steps.
 
 ## Source Code
 
@@ -47,10 +48,20 @@ You can find the complete source code for this tutorial's examples in the {% rep
 
 {% tabs %}
 {% tab label="JavaScript" %}
-From the code sample folder, use npm to install dependencies:
+From the code sample folder, use `npm` to install dependencies:
 
 ```bash
 npm install xrpl
+```
+
+{% /tab %}
+{% tab label="Python" %}
+From the code sample folder, set up a virtual environment and use `pip` to install dependencies:
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
 ```
 
 {% /tab %}
@@ -60,12 +71,19 @@ npm install xrpl
 
 To get started, import the necessary libraries and instantiate a client to connect to the XRPL. This example imports:
 
+{% tabs %}
+{% tab label="JavaScript" %}
 - `xrpl`: Used for XRPL client connection and transaction handling.
 - `fs` and `child_process`: Used to run tutorial setup scripts.
 
-{% tabs %}
-{% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/createVault.js" language="js" before="// Create and fund" /%}
+{% /tab %}
+{% tab label="Python" %}
+- `json`: Used for loading and formatting JSON data.
+- `os`, `subprocess`, `sys`: Used for file handling and running setup scripts.
+- `xrpl`: Used for XRPL client connection and transaction handling.
+
+{% code-snippet file="/_code-samples/vaults/py/create_vault.py" language="python" before="# Create and fund" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -74,10 +92,16 @@ Next, fund a vault owner account, define the MPT issuance ID for the vault's ass
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/createVault.js" language="js" from="// Create and fund" before="// Prepare VaultCreate" /%}
+
+The example uses an existing MPT issuance and permissioned domain data from the `vaultSetup.js` script, but you can also provide your own values. If you want to create a public vault, you don't need to provide the `domainID`.
+{% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/create_vault.py" language="python" from="# Create and fund" before="# Prepare VaultCreate" /%}
+
+The example uses an existing MPT issuance and permissioned domain data from the `vault_setup.py` script, but you can also provide your own values. If you want to create a public vault, you don't need to provide the `domain_id`.
 {% /tab %}
 {% /tabs %}
-
-The example uses an existing MPT issuance and permissioned domain data from the `vaultSetup.js` script, but you can also provide your own values. If you want to create a public vault, you don't need to provide the `domainId`.
 
 ### 3. Prepare VaultCreate transaction
 
@@ -86,14 +110,24 @@ Create the [VaultCreate transaction][] object:
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/createVault.js" language="js" from="// Prepare VaultCreate" before="// Submit, sign" /%}
-{% /tab %}
-{% /tabs %}
 
 The `tfVaultPrivate` flag and `DomainID` field restrict deposits to accounts with valid credentials in the specified permissioned domain. These can be omitted if you want to create a public vault instead.
 
 The `Data` field contains hex-encoded metadata about the vault itself, such as its name (`n`) and website (`w`). While any data structure is allowed, it's recommended to follow the [defined data schema](../../../../references/protocol/ledger-data/ledger-entry-types/vault.md#data-field-format) for better discoverability in the XRPL ecosystem.
 
 The `AssetsMaximum` is set to `0` to indicate no cap on how much of the asset the vault can hold, but you can adjust as needed.
+{% /tab %}
+
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/create_vault.py" language="python" from="# Prepare VaultCreate" before="# Submit, sign" /%}
+
+The `tfVaultPrivate` flag and `domain_id` field restrict deposits to accounts with valid credentials in the specified permissioned domain. These can be omitted if you want to create a public vault instead.
+
+The `data` field contains hex-encoded metadata about the vault itself, such as its name (`n`) and website (`w`). While any data structure is allowed, it's recommended to follow the [defined data schema](../../../../references/protocol/ledger-data/ledger-entry-types/vault.md#data-field-format) for better discoverability in the XRPL ecosystem.
+
+The `assets_maximum` is set to `0` to indicate no cap on how much of the asset the vault can hold, but you can adjust as needed.
+{% /tab %}
+{% /tabs %}
 
 Vault shares are **transferable** by default, meaning depositors can transfer their shares to other accounts. If you don't want the vault's shares to be transferable, enable the `tfVaultShareNonTransferable` flag.
 
@@ -104,6 +138,9 @@ Sign and submit the `VaultCreate` transaction to the XRP Ledger.
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/createVault.js" language="js" from="// Submit, sign" before="// Extract vault information" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/create_vault.py" language="python" from="# Submit, sign" before="# Extract vault information" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -117,6 +154,9 @@ Retrieve the vault's information from the transaction result by checking for the
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/createVault.js" language="js" from="// Extract vault information" before="// Call vault_info" /%}
 {% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/create_vault.py" language="python" from="# Extract vault information" before="# Call vault_info" /%}
+{% /tab %}
 {% /tabs %}
 
 You can also use the [vault_info method][]  to retrieve the vault's details:
@@ -124,6 +164,9 @@ You can also use the [vault_info method][]  to retrieve the vault's details:
 {% tabs %}
 {% tab label="JavaScript" %}
 {% code-snippet file="/_code-samples/vaults/js/createVault.js" language="js" from="// Call vault_info" /%}
+{% /tab %}
+{% tab label="Python" %}
+{% code-snippet file="/_code-samples/vaults/py/create_vault.py" language="python" from="# Call vault_info" /%}
 {% /tab %}
 {% /tabs %}
 
