@@ -3,19 +3,26 @@ category: 2026
 date: "2026-02-23"
 template: '../../@theme/templates/blogpost'
 seo:
-    title: Introducing XRP Ledger version 3.1.1
-    description: rippled version 3.1.1 is now available. This version disables the Batch and fixBatchInnerSigs amendments.
+    title: Introducing XRP Ledger version 3.1.1 and upcoming Devnet reset
+    description: rippled version 3.1.1 is now available. This version disables the Batch and fixBatchInnerSigs amendments. Devnet is also scheduled to reset on Tuesday, March 3, 2026 to prevent validators from becoming amendment blocked.
 labels:
     - rippled Release Notes
 markdown:
     editPage:
         hide: true
 ---
-# Introducing XRP Ledger version 3.1.1
+# Introducing XRP Ledger version 3.1.1 and Upcoming Devnet Reset
 
-Version 3.1.1 of `rippled`, the reference server implementation of the XRP Ledger protocol, is now available. This release supersedes version 3.1.0, disabling the `Batch` and `fixBatchInnerSigs` amendments due to a bug.
+Version 3.1.1 of `rippled`, the reference server implementation of the XRP Ledger protocol, is now available. This release supersedes version 3.1.0, disabling the `Batch` and `fixBatchInnerSigs` amendments due to a severe bug.
 
-Since these amendments are enabled on Devnet, this change will cause validators to become amendment blocked. To prevent this, Devnet will be reset on **Tuesday, March 3, 2026**. This reset affects Devnet only. Other networks will continue to operate as usual, including XRPL Mainnet, XRPL Testnet, Xahau, and the Hooks Testnet.
+
+## Upcoming Devnet Reset
+
+Devnet is scheduled for a reset on **Tuesday, March 3, 2026**. The `Batch` amendment requires more development and is now set to unsupported in version 3.1.1. To prevent validators that upgrade to this version from becoming amendment blocked, Devnet must be reset.
+
+### Impact
+
+This reset affects Devnet only. Other networks will continue to operate as usual, including XRPL Mainnet, XRPL Testnet, Xahau, and the Hooks Testnet.
 
 The reset will delete all ledger data in Devnet, including all accounts, transactions, balances, settings, offers, AMMs, escrows, and other data. This means all balances will be reset to zero and the block number will start at one again. No changes are anticipated to services such as Devnet APIs, faucets, Explorers, access rights, and wallet integrations; these services usually manage resets without issues.
 
@@ -30,7 +37,7 @@ If you run an XRP Ledger server, upgrade to version 3.1.1 as soon as possible to
 
 ### Add New GPG Key
 
-As a reminder, Ripple rotated the GPG key used to sign `rippled` packages. You must download and trust the new key before upgrading to version 3.1.1.
+As a reminder, [Ripple rotated the GPG key](./gpg-key-rotation.md) used to sign `rippled` packages. You must download and trust the new key before upgrading to version 3.1.1.
 
 {% tabs %}
 {% tab label="Red Hat / CentOS" %}
