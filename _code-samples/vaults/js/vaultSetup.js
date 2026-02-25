@@ -25,6 +25,28 @@ const [
 process.stdout.write('Setting up tutorial: 1/5\r')
 
 const credType = 'VaultAccess'
+
+// Create tickets for domain owner to submit transactions concurrently
+const ticketCreateResult = await client.submitAndWait(
+  {
+    TransactionType: 'TicketCreate',
+    Account: domainOwner.address,
+    TicketCount: 2
+  },
+  { wallet: domainOwner, autofill: true }
+)
+
+// Get the ticket sequences
+const ticketsResponse = await client.request({
+  command: 'account_objects',
+  account: domainOwner.address,
+  type: 'ticket',
+  ledger_index: 'validated'
+})
+const ticketSequences = ticketsResponse.result.account_objects.map(
+  (obj) => obj.TicketSequence
+)
+
 const [mptCreateResult] = await Promise.all([
   client.submitAndWait(
     {
@@ -71,35 +93,29 @@ const [mptCreateResult] = await Promise.all([
   ),
   client.submitAndWait(
     {
-      TransactionType: "Batch",
+      TransactionType: "PermissionedDomainSet",
       Account: domainOwner.address,
-      Flags: xrpl.BatchFlags.tfAllOrNothing,
-      RawTransactions: [
+      AcceptedCredentials: [
         {
-          RawTransaction: {
-            TransactionType: "PermissionedDomainSet",
-            Account: domainOwner.address,
-            AcceptedCredentials: [
-              {
-                Credential: {
-                  Issuer: domainOwner.address,
-                  CredentialType: xrpl.convertStringToHex(credType),
-                },
-              },
-            ],
-            Flags: xrpl.GlobalFlags.tfInnerBatchTxn,
-          },
-        },
-        {
-          RawTransaction: {
-            TransactionType: "CredentialCreate",
-            Account: domainOwner.address,
-            Subject: depositor.address,
+          Credential: {
+            Issuer: domainOwner.address,
             CredentialType: xrpl.convertStringToHex(credType),
-            Flags: xrpl.GlobalFlags.tfInnerBatchTxn,
           },
         },
       ],
+      TicketSequence: ticketSequences[0],
+      Sequence: 0
+    },
+    { wallet: domainOwner, autofill: true },
+  ),
+  client.submitAndWait(
+    {
+      TransactionType: "CredentialCreate",
+      Account: domainOwner.address,
+      Subject: depositor.address,
+      CredentialType: xrpl.convertStringToHex(credType),
+      TicketSequence: ticketSequences[1],
+      Sequence: 0
     },
     { wallet: domainOwner, autofill: true },
   ),
@@ -120,31 +136,46 @@ const domainId = domainOwnerObjects.result.account_objects.find(
 // Step 2: Depositor accepts credential, authorizes MPT, and creates vault in parallel
 process.stdout.write('Setting up tutorial: 2/5\r')
 
-const [, vaultCreateResult] = await Promise.all([
+// Create tickets for depositor to submit transactions concurrently
+const depositorTicketCreateResult = await client.submitAndWait(
+  {
+    TransactionType: 'TicketCreate',
+    Account: depositor.address,
+    TicketCount: 2
+  },
+  { wallet: depositor, autofill: true }
+)
+
+// Get the ticket sequences for depositor
+const depositorTicketsResponse = await client.request({
+  command: 'account_objects',
+  account: depositor.address,
+  type: 'ticket',
+  ledger_index: 'validated'
+})
+const depositorTicketSequences = depositorTicketsResponse.result.account_objects.map(
+  (obj) => obj.TicketSequence
+)
+
+const [, , vaultCreateResult] = await Promise.all([
   client.submitAndWait(
     {
-      TransactionType: 'Batch',
+      TransactionType: 'CredentialAccept',
       Account: depositor.address,
-      Flags: xrpl.BatchFlags.tfAllOrNothing,
-      RawTransactions: [
-        {
-          RawTransaction: {
-            TransactionType: 'CredentialAccept',
-            Account: depositor.address,
-            Issuer: domainOwner.address,
-            CredentialType: xrpl.convertStringToHex(credType),
-            Flags: xrpl.GlobalFlags.tfInnerBatchTxn
-          }
-        },
-        {
-          RawTransaction: {
-            TransactionType: 'MPTokenAuthorize',
-            Account: depositor.address,
-            MPTokenIssuanceID: mptIssuanceId,
-            Flags: xrpl.GlobalFlags.tfInnerBatchTxn
-          }
-        }
-      ]
+      Issuer: domainOwner.address,
+      CredentialType: xrpl.convertStringToHex(credType),
+      TicketSequence: depositorTicketSequences[0],
+      Sequence: 0
+    },
+    { wallet: depositor, autofill: true }
+  ),
+  client.submitAndWait(
+    {
+      TransactionType: 'MPTokenAuthorize',
+      Account: depositor.address,
+      MPTokenIssuanceID: mptIssuanceId,
+      TicketSequence: depositorTicketSequences[1],
+      Sequence: 0
     },
     { wallet: depositor, autofill: true }
   ),
