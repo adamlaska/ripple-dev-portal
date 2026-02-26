@@ -111,9 +111,11 @@ For details, see the [XLS-73: AMMClawback specification](https://github.com/XRPL
 | Default Vote (Latest stable release) | No |
 | Pre-amendment functionality retired? | No |
 
-Allows multiple transactions to be bundled into a batch that's processed all together. This amendment was disabled in v3.1.1 due to a bug. It will be replaced by `BatchV1_1` in a future release.
+Allows multiple transactions to be bundled into a batch that's processed all together. Standard: [XLS-56](https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0056-batch)
 
-Standard: [XLS-56](https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0056-batch)
+{% admonition type="danger" name="Warning" %}
+This amendment was disabled in v3.1.1 due to a bug. It will be replaced by `BatchV1_1` in a future release.
+{% /admonition %}
 
 
 ### CheckCashMakesTrustLine
@@ -756,7 +758,9 @@ Adds several fixes to Automated Market Maker code, specifically:
 
 This amendment fixes an issue where inner transactions of a `Batch` transaction would be flagged as having valid signatures. Since inner transactions aren't signed directly, they should never have valid signatures.
 
+{% admonition type="danger" name="Warning" %}
 This amendment was disabled in v3.1.1 due to a bug. It will be replaced by `BatchV1_1` in a future release.
+{% /admonition %}
 
 
 ### fixCheckThreading
@@ -1705,9 +1709,11 @@ For more information, see the [Payment Channels Tutorial](../docs/tutorials/how-
 | Default Vote (Latest stable release) | No |
 | Pre-amendment functionality retired? | No |
 
-Allows accounts to delegate some permissions to other accounts. This amendment was disabled in v2.6.1 due to a bug. It will be replaced by `PermissionDelegationV1_1` in a future release.
+Allows accounts to delegate some permissions to other accounts. Specification: [XLS-75](https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0075-permission-delegation).
 
-Specification: [XLS-75](https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0075-permission-delegation).
+{% admonition type="danger" name="Warning" %}
+This amendment was disabled in v2.6.1 due to a bug. It will be replaced by `PermissionDelegationV1_1` in a future release.
+{% /admonition %}
 
 
 ### PermissionedDEX
