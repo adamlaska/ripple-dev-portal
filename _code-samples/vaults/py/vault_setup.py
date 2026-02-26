@@ -10,7 +10,6 @@ from xrpl.models import (
     MPTokenIssuanceCreate, MPTokenIssuanceCreateFlag, Payment,
     PermissionedDomainSet, TicketCreate, VaultDeposit
 )
-from xrpl.models.requests import AccountObjects
 from xrpl.models.transactions.deposit_preauth import Credential
 from xrpl.models.transactions.vault_create import (
     VaultCreate, VaultCreateFlag, WithdrawalPolicy
@@ -18,9 +17,17 @@ from xrpl.models.transactions.vault_create import (
 from xrpl.utils import encode_mptoken_metadata, str_to_hex
 
 
+def get_ticket_sequences(ticket_create_result):
+    """Extract ticket sequences from a TicketCreate transaction result."""
+    return [
+        node["CreatedNode"]["NewFields"]["TicketSequence"]
+        for node in ticket_create_result.result["meta"]["AffectedNodes"]
+        if "CreatedNode" in node and node["CreatedNode"].get("LedgerEntryType") == "Ticket"
+    ]
+
 async def main():
     # Setup script for vault tutorials
-    print("Setting up tutorial: 0/5", end="\r")
+    print("Setting up tutorial: 0/6", end="\r")
 
     async with AsyncWebsocketClient("wss://s.devnet.rippletest.net:51233") as client:
         # Create and fund all wallets concurrently
@@ -31,33 +38,39 @@ async def main():
             generate_faucet_wallet(client),
         )
 
-        # Step 1: Create MPT issuance, permissioned domain, and credentials in parallel
-        print("Setting up tutorial: 1/5", end="\r")
+        # Step 1: Create tickets for domain owner and depositor to submit transactions concurrently
+        print("Setting up tutorial: 1/6", end="\r")
 
         cred_type = "VaultAccess"
-
-        # Create tickets for domain owner to submit transactions concurrently
-        ticket_create_result = await submit_and_wait(
-            TicketCreate(
-                account=domain_owner.address,
-                ticket_count=2
+        domain_owner_ticket_create_result, depositor_ticket_create_result = await asyncio.gather(
+            submit_and_wait(
+                TicketCreate(
+                    account=domain_owner.address,
+                    ticket_count=2
+                ),
+                client,
+                domain_owner,
+                autofill=True
             ),
-            client,
-            domain_owner,
-            autofill=True
+            submit_and_wait(
+                TicketCreate(
+                    account=depositor.address,
+                    ticket_count=2
+                ),
+                client,
+                depositor,
+                autofill=True
+            )
         )
 
-        # Get the ticket sequences
-        tickets_response = await client.request(AccountObjects(
-            account=domain_owner.address,
-            type="ticket",
-            ledger_index="validated",
-        ))
-        ticket_sequences = [
-            obj["TicketSequence"] for obj in tickets_response.result["account_objects"]
-        ]
+        # Get the ticket sequences from transaction results
+        domain_owner_ticket_sequences = get_ticket_sequences(domain_owner_ticket_create_result)
+        depositor_ticket_sequences = get_ticket_sequences(depositor_ticket_create_result)
 
-        mpt_create_result, _, _ = await asyncio.gather(
+        # Step 2: Create MPT issuance, permissioned domain, and credentials in parallel
+        print("Setting up tutorial: 2/6", end="\r")
+
+        mpt_create_result, domain_set_result, _ = await asyncio.gather(
             submit_and_wait(
                 MPTokenIssuanceCreate(
                     account=mpt_issuer.address,
@@ -112,7 +125,7 @@ async def main():
                             credential_type=str_to_hex(cred_type)
                         )
                     ],
-                    ticket_sequence=ticket_sequences[0],
+                    ticket_sequence=domain_owner_ticket_sequences[0],
                     sequence=0
                 ),
                 client,
@@ -124,7 +137,7 @@ async def main():
                     account=domain_owner.address,
                     subject=depositor.address,
                     credential_type=str_to_hex(cred_type),
-                    ticket_sequence=ticket_sequences[1],
+                    ticket_sequence=domain_owner_ticket_sequences[1],
                     sequence=0
                 ),
                 client,
@@ -135,40 +148,15 @@ async def main():
 
         mpt_issuance_id = mpt_create_result.result["meta"]["mpt_issuance_id"]
 
-        # Get domain ID
-        domain_owner_objects = await client.request(AccountObjects(
-            account=domain_owner.address,
-            ledger_index="validated",
-        ))
-        domain_id = next(
-            node["index"]
-            for node in domain_owner_objects.result["account_objects"]
-            if node["LedgerEntryType"] == "PermissionedDomain"
+        # Get domain ID from transaction result
+        domain_node = next(
+            node for node in domain_set_result.result["meta"]["AffectedNodes"]
+            if "CreatedNode" in node and node["CreatedNode"].get("LedgerEntryType") == "PermissionedDomain"
         )
+        domain_id = domain_node["CreatedNode"]["LedgerIndex"]
 
-        # Step 2: Depositor accepts credential, authorizes MPT, and creates vault in parallel
-        print("Setting up tutorial: 2/5", end="\r")
-
-        # Create tickets for depositor to submit transactions concurrently
-        depositor_ticket_create_result = await submit_and_wait(
-            TicketCreate(
-                account=depositor.address,
-                ticket_count=2
-            ),
-            client,
-            depositor,
-            autofill=True
-        )
-
-        # Get the ticket sequences for depositor
-        depositor_tickets_response = await client.request(AccountObjects(
-            account=depositor.address,
-            type="ticket",
-            ledger_index="validated",
-        ))
-        depositor_ticket_sequences = [
-            obj["TicketSequence"] for obj in depositor_tickets_response.result["account_objects"]
-        ]
+        # Step 3: Depositor accepts credential, authorizes MPT, and creates vault in parallel
+        print("Setting up tutorial: 3/6", end="\r")
 
         _, _, vault_create_result = await asyncio.gather(
             submit_and_wait(
@@ -243,8 +231,8 @@ async def main():
         vault_id = vault_node["CreatedNode"]["LedgerIndex"]
         vault_share_mpt_issuance_id = vault_node["CreatedNode"]["NewFields"]["ShareMPTID"]
 
-        # Step 3: Issuer sends payment to depositor
-        print("Setting up tutorial: 3/5", end="\r")
+        # Step 4: Issuer sends payment to depositor
+        print("Setting up tutorial: 4/6", end="\r")
 
         payment_result = await submit_and_wait(
             Payment(
@@ -264,8 +252,8 @@ async def main():
             print(f"\nPayment failed: {payment_result.result['meta']['TransactionResult']}", file=sys.stderr)
             sys.exit(1)
 
-        # Step 4: Make an initial deposit so withdraw example has shares to work with
-        print("Setting up tutorial: 4/5", end="\r")
+        # Step 5: Make an initial deposit so withdraw example has shares to work with
+        print("Setting up tutorial: 5/6", end="\r")
 
         initial_deposit_result = await submit_and_wait(
             VaultDeposit(
@@ -285,8 +273,8 @@ async def main():
             print(f"\nInitial deposit failed: {initial_deposit_result.result['meta']['TransactionResult']}", file=sys.stderr)
             sys.exit(1)
 
-        # Step 5: Save setup data to file
-        print("Setting up tutorial: 5/5", end="\r")
+        # Step 6: Save setup data to file
+        print("Setting up tutorial: 6/6", end="\r")
 
         setup_data = {
             "mpt_issuer": {
