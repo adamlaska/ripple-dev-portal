@@ -1497,7 +1497,7 @@ This amendment adds several new invariants to protect the ledger against bugs in
 
 The Lending Protocol enables on-chain, fixed-term, uncollateralized loans using pooled funds from a Single Asset Vault. This implementation relies on off-chain underwriting and risk management to assess the creditworthiness of borrowers, but offers configurable, peer-to-peer loans.
 
-Specification: [XLS-66](https://github.com/Tapanito/XRPL-Standards/tree/xls-66-lending-protocol/XLS-0066-lending-protocol).
+Specification: [XLS-66](https://github.com/XRPLF/XRPL-Standards/tree/master/XLS-0066-lending-protocol).
 
 
 ### MPTokensV1
