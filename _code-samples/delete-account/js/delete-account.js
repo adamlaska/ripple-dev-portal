@@ -44,14 +44,14 @@ let numProblems = 0
 // Check if sequence number is too high
 const acctSeq = acctInfoResp.result.account_data.Sequence
 const lastValidatedLedgerIndex = acctInfoResp.result.ledger_index
-if (acctSeq + 256 >= lastValidatedLedgerIndex) {
+if (acctSeq + 255 > lastValidatedLedgerIndex) {
   console.error(`Account is too new to be deleted.
-    Account sequence + 256: ${acctSeq + 256}
+    Account sequence + 255: ${acctSeq + 255}
     Validated ledger index: ${lastValidatedLedgerIndex}
-    (Sequence + 256 must be less than ledger index)`)
+    (Sequence + 255 must be less than or equal to the ledger index)`)
 
   // Estimate time until deletability assuming ledgers close every ~3.5 seconds
-  const estWaitTimeS = (acctSeq + 256 - lastValidatedLedgerIndex) * 3.5
+  const estWaitTimeS = (acctSeq + 255 - lastValidatedLedgerIndex) * 3.5
   if (estWaitTimeS < 120) {
     console.log(`Estimate: ${estWaitTimeS} seconds until account can be deleted`)
   } else {
@@ -69,7 +69,7 @@ const ownerCount = acctInfoResp.result.account_data.OwnerCount
 if (ownerCount > 1000) {
   console.error(`Account owns too many objects in the ledger.
     Owner count: ${ownerCount}
-    (Must be less than 1000)`)
+    (Must be 1000 or less)`)
   numProblems += 1
 } else {
   console.log(`OK: Account owner count (${ownerCount}) is low enough.`)
@@ -109,11 +109,11 @@ if (acctBalance < deletionCost) {
 // Check if FirstNFTSequence is too high
 const firstNFTSeq = acctInfoResp.result.account_data.FirstNFTokenSequence || 0
 const mintedNFTs = acctInfoResp.result.account_data.MintedNFTokens || 0
-if (firstNFTSeq + mintedNFTs + 256 >= lastValidatedLedgerIndex) {
-  console.error(`Account's FirstNFTokenSequence + MintedNFTokens + 256 is too high.
-    Current total: ${firstNFTSeq + mintedNFTs + 256}
+if (firstNFTSeq + mintedNFTs + 255 > lastValidatedLedgerIndex) {
+  console.error(`Account's FirstNFTokenSequence + MintedNFTokens + 255 is too high.
+    Current total: ${firstNFTSeq + mintedNFTs + 255}
     Validated ledger index: ${lastValidatedLedgerIndex}
-    (FirstNFTokenSequence + MintedNFTokens + 256 must be less than the ledger index)`)
+    (FirstNFTokenSequence + MintedNFTokens + 255 must be less than or equal to the ledger index)`)
   numProblems += 1
 } else {
   console.log('OK: FirstNFTokenSequence + MintedNFTokens is low enough.')

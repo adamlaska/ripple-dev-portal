@@ -16,11 +16,11 @@ After an account has been deleted, it can be re-created in the ledger through th
 
 To be deleted, an account must meet the following requirements:
 
-- The account's `Sequence` number plus 256 must be less than the current [Ledger Index][]. This is to protect against replaying old transactions.
+- The account's `Sequence` number plus 255 must be less than or equal to the current [Ledger Index][]. This is to protect against replaying old transactions.
 - The account must not have any "deletion blockers" in its owner directory. Deletion blockers are generally ledger entries that represent assets, obligations, or transfers of funds. See below for a full list of deletion blockers.
-- The account must own fewer than 1000 objects in the ledger.
+- The account must own 1000 or fewer objects in the ledger.
 - The transaction must pay a special [transaction cost][] equal to at least the [owner reserve](reserves.md) for one item (currently {% $env.PUBLIC_OWNER_RESERVE %}).
-- If the account has issued any [NFTs](../tokens/nfts/index.md), they must all have been burned. Additionally, the account's `FirstNFTSequence` number plus `MintedNFTokens` number plus 256 must be less than the current ledger index. This is to protect against reusing `NFTokenID` values. {% amendment-disclaimer name="fixNFTokenRemint" /%}
+- If the account has issued any [NFTs](../tokens/nfts/index.md), they must all have been burned. Additionally, the account's `FirstNFTSequence` number plus `MintedNFTokens` number plus 255 must be less than or equal to the current ledger index. This is to protect against reusing `NFTokenID` values. {% amendment-disclaimer name="fixNFTokenRemint" /%}
 
 ## Deletion Blockers
 

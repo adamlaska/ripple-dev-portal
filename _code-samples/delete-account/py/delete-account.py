@@ -53,16 +53,16 @@ num_problems = 0
 acct_seq = acct_info_result["account_data"]["Sequence"]
 last_validated_ledger_index = acct_info_result["ledger_index"]
 
-if acct_seq + 256 >= last_validated_ledger_index:
+if acct_seq + 255 > last_validated_ledger_index:
     print(
         f"Account is too new to be deleted.\n"
-        f"    Account sequence + 256: {acct_seq + 256}\n"
+        f"    Account sequence + 255: {acct_seq + 255}\n"
         f"    Validated ledger index: {last_validated_ledger_index}\n"
-        f"    (Sequence + 256 must be less than ledger index)"
+        f"    (Sequence + 255 must be less than or equal to the ledger index)"
     )
 
     # Estimate time until deletability assuming ledgers close every ~3.5 seconds
-    est_wait_time_s = (acct_seq + 256 - last_validated_ledger_index) * 3.5
+    est_wait_time_s = (acct_seq + 255 - last_validated_ledger_index) * 3.5
     if est_wait_time_s < 120:
         print(f"Estimate: {est_wait_time_s} seconds until account can be deleted")
     else:
@@ -79,7 +79,7 @@ if owner_count > 1000:
     print(
         f"Account owns too many objects in the ledger.\n"
         f"    Owner count: {owner_count}\n"
-        f"    (Must be less than 1000)"
+        f"    (Must be 1000 or less)"
     )
     num_problems += 1
 else:
@@ -118,11 +118,11 @@ else:
 # Check if FirstNFTSequence is too high
 first_nfq_seq = acct_info_result["account_data"].get("FirstNFTokenSequence", 0)
 minted_nfts = acct_info_result["account_data"].get("MintedNFTokens", 0)
-if first_nfq_seq + minted_nfts + 256 >= last_validated_ledger_index:
-    print(f"""Account's FirstNFTokenSequence + MintedNFTokens + 256 is too high.
-    Current total: {first_nfq_seq + minted_nfts + 256}
+if first_nfq_seq + minted_nfts + 255 > last_validated_ledger_index:
+    print(f"""Account's FirstNFTokenSequence + MintedNFTokens + 255 is too high.
+    Current total: {first_nfq_seq + minted_nfts + 255}
     Validated ledger index: {last_validated_ledger_index}
-    (FirstNFTokenSequence + MintedNFTokens + 256 must be less than the ledger index)""")
+    (FirstNFTokenSequence + MintedNFTokens + 255 must be less than or equal to the the ledger index)""")
     num_problems += 1
 else:
     print("OK: FirstNFTokenSequence + MintedNFTokens is low enough.")

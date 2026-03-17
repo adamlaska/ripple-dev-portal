@@ -20,9 +20,9 @@ Got new account from faucet:
   
 Edit the .env file to add this seed, then wait until the account can be deleted.
 Account is too new to be deleted.
-    Account sequence + 256: 15226794
+    Account sequence + 255: 15226794
     Validated ledger index: 15226538
-    (Sequence + 256 must be less than ledger index)
+    (Sequence + 255 must be less than or equal to the ledger index)
 Estimate: 15 minutes until account can be deleted
 OK: Account owner count (0) is low enough.
 OK: Account balance (100000000 drops) is high enough.

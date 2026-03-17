@@ -97,7 +97,7 @@ The first step to checking if an account can be deleted is to get its account in
 
 #### 3.2. Check sequence number
 
-Compare the account's current sequence number, in the `Sequence` field of the account data, is low enough compared with the latest validated ledger index. For the account to be deletable, its sequence number plus 256 must be lower than the ledger index.
+Check that the account's current sequence number, in the `Sequence` field of the account data, is low enough compared with the latest validated ledger index. For the account to be deletable, its sequence number plus 255 must be lower than or equal to the ledger index.
 
 {% tabs %}
 {% tab label="JavaScript" %}
@@ -111,7 +111,7 @@ Compare the account's current sequence number, in the `Sequence` field of the ac
 
 #### 3.3. Check owner count
 
-Check the `OwnerCount` field of the account data to see if the account owns too many other ledger entries. For an account to be deletable, it must own less than 1000 entries (of any type) in the ledger.
+Check the `OwnerCount` field of the account data to see if the account owns too many other ledger entries. For an account to be deletable, it must own 1000 or fewer entries (of any type) in the ledger.
 
 {% tabs %}
 {% tab label="JavaScript" %}
@@ -141,7 +141,7 @@ Deleting an account requires a special [transaction cost][] equal to the increme
 
 #### 3.5. Check NFT sequence number
 
-Check the `FirstNFTokenSequence` and `MintedNFTokens` fields of the account. (If either field is absent, you can treat its value as `0` for this purpose.) For the account to be deletable, the sum of these two numbers plus 256 must be lower than the current ledger index. 
+Check the `FirstNFTokenSequence` and `MintedNFTokens` fields of the account. (If either field is absent, you can treat its value as `0` for this purpose.) For the account to be deletable, the sum of these two numbers plus 255 must be lower than or equal to the current ledger index. 
 
 {% tabs %}
 {% tab label="JavaScript" %}
