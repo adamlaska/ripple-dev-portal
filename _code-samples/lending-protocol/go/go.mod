@@ -2,7 +2,7 @@ module github.com/XRPLF
 
 go 1.24.3
 
-require github.com/Peersyst/xrpl-go v0.1.15
+require github.com/Peersyst/xrpl-go v0.1.16
 
 require (
 	github.com/bsv-blockchain/go-sdk v1.2.9 // indirect
