@@ -6,7 +6,7 @@ labels:
 ---
 # Deleting Accounts
 
-The owner of an account can send an [AccountDelete transaction][] to deletes the account and related entries from the ledger, sending most of the account's remaining XRP balance to another account. To discourage wasteful creation and deletion of accounts, deleting an account requires burning a higher than usual amount of XRP as the [transaction cost](../transactions/transaction-cost.md).
+The owner of an account can send an [AccountDelete transaction][] to delete the account and related entries from the ledger, sending most of the account's remaining XRP balance to another account. To discourage wasteful creation and deletion of accounts, deleting an account requires burning a higher than usual amount of XRP as the [transaction cost](../transactions/transaction-cost.md).
 
 Some types of associated ledger entries block an account from being deleted. For example, the issuer of a fungible token can't be deleted while anyone holds a nonzero balance of that token.
 
