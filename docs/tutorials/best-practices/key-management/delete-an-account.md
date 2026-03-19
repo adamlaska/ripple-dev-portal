@@ -189,7 +189,7 @@ The sample code does not try to handle these problems, and quits if any problems
 
 ### 4. Check for deletion blockers and remove them if possible
 
-Some types of ledger entry can block an account from being deleted. You can check for these types of entries using the [account_objects method][] with the `"deletion_blockers_only": true` parameter.
+Some types of ledger entries can block an account from being deleted. You can check for these types of entries using the [account_objects method][] with the `"deletion_blockers_only": true` parameter.
 
 {% tabs %}
 {% tab label="JavaScript" %}
