@@ -9,13 +9,14 @@ import (
 	"os"
 	"os/exec"
 
-	binarycodec "github.com/Peersyst/xrpl-go/binary-codec"
 	"github.com/Peersyst/xrpl-go/xrpl/transaction"
 	"github.com/Peersyst/xrpl-go/xrpl/transaction/types"
 	"github.com/Peersyst/xrpl-go/xrpl/wallet"
 	"github.com/Peersyst/xrpl-go/xrpl/websocket"
 )
 
+// ptr is a helper that returns a pointer to the given value,
+// used for setting optional transaction fields in Go.
 func ptr[T any](v T) *T { return &v }
 
 func main() {
@@ -87,79 +88,62 @@ func main() {
 		LoanServiceFee:     ptr(types.XRPLNumber("10")),
 	}
 
-	// Flatten() converts the struct to a map and adds the TransactionType field
-	flatTx := transaction.FlatTransaction(loanSetTx.Flatten())
+	// Flatten() converts the struct to a map and adds the TransactionType field.
+	// The result is cast to FlatTransaction, which is required by Autofill and signing methods.
+	flatLoanSetTx := transaction.FlatTransaction(loanSetTx.Flatten())
 
 	// Autofill the transaction
-	if err := client.Autofill(&flatTx); err != nil {
+	if err := client.Autofill(&flatLoanSetTx); err != nil {
 		panic(err)
 	}
 
-	txJSON, _ := json.MarshalIndent(flatTx, "", "  ")
-	fmt.Printf("%s\n", string(txJSON))
+	loanSetTxJSON, _ := json.MarshalIndent(flatLoanSetTx, "", "  ")
+	fmt.Printf("%s\n", string(loanSetTxJSON))
 
 	// Loan broker signs first
 	fmt.Printf("\n=== Adding loan broker signature ===\n\n")
-	_, _, err = loanBrokerWallet.Sign(flatTx)
+	_, _, err = loanBrokerWallet.Sign(flatLoanSetTx)
 	if err != nil {
 		panic(err)
 	}
-	lbPubKey := flatTx["SigningPubKey"].(string)
-	lbSig := flatTx["TxnSignature"].(string)
 
-	fmt.Printf("TxnSignature: %s\n", lbSig)
-	fmt.Printf("SigningPubKey: %s\n\n", lbPubKey)
+	fmt.Printf("TxnSignature: %s\n", flatLoanSetTx["TxnSignature"])
+	fmt.Printf("SigningPubKey: %s\n\n", flatLoanSetTx["SigningPubKey"])
 
-	signedJSON, _ := json.MarshalIndent(flatTx, "", "  ")
-	fmt.Printf("Signed loanSetTx for borrower to sign over:\n%s\n", string(signedJSON))
+	loanBrokerSignedJSON, _ := json.MarshalIndent(flatLoanSetTx, "", "  ")
+	fmt.Printf("Signed loanSetTx for borrower to sign over:\n%s\n", string(loanBrokerSignedJSON))
 
 	// Borrower signs second
 	fmt.Printf("\n=== Adding borrower signature ===\n\n")
-
-	// Sign with borrower wallet to generate their signature.
-	// This temporarily overwrites SigningPubKey and TxnSignature.
-	_, _, err = borrowerWallet.Sign(flatTx)
+	fullySignedBlob, _, err := wallet.SignLoanSetByCounterparty(borrowerWallet, &flatLoanSetTx, nil)
 	if err != nil {
 		panic(err)
 	}
-	borrowerPubKey := flatTx["SigningPubKey"].(string)
-	borrowerSig := flatTx["TxnSignature"].(string)
 
-	fmt.Printf("Borrower TxnSignature: %s\n", borrowerSig)
-	fmt.Printf("Borrower SigningPubKey: %s\n", borrowerPubKey)
+	borrowerSignatures := flatLoanSetTx["CounterpartySignature"].(map[string]any)
+	fmt.Printf("Borrower TxnSignature: %s\n", borrowerSignatures["TxnSignature"])
+	fmt.Printf("Borrower SigningPubKey: %s\n", borrowerSignatures["SigningPubKey"])
 
-	// Restore loan broker's primary signature and add counterparty signature
-	flatTx["SigningPubKey"] = lbPubKey
-	flatTx["TxnSignature"] = lbSig
-	flatTx["CounterpartySignature"] = map[string]any{
-		"SigningPubKey": borrowerPubKey,
-		"TxnSignature": borrowerSig,
-	}
-
-	fullySignedJSON, _ := json.MarshalIndent(flatTx, "", "  ")
+	fullySignedJSON, _ := json.MarshalIndent(flatLoanSetTx, "", "  ")
 	fmt.Printf("\nFully signed LoanSet transaction:\n%s\n", string(fullySignedJSON))
 
-	// Encode and submit the fully signed transaction ----------------------
+	// Submit and wait for validation ----------------------
 	fmt.Printf("\n=== Submitting signed LoanSet transaction ===\n\n")
-	blob, err := binarycodec.Encode(flatTx)
+
+	loanSetResponse, err := client.SubmitTxBlobAndWait(fullySignedBlob, false)
 	if err != nil {
 		panic(err)
 	}
 
-	response, err := client.SubmitTxBlobAndWait(blob, false)
-	if err != nil {
-		panic(err)
-	}
-
-	if response.Meta.TransactionResult != "tesSUCCESS" {
-		fmt.Printf("Error: Unable to create loan: %s\n", response.Meta.TransactionResult)
+	if loanSetResponse.Meta.TransactionResult != "tesSUCCESS" {
+		fmt.Printf("Error: Unable to create loan: %s\n", loanSetResponse.Meta.TransactionResult)
 		os.Exit(1)
 	}
 	fmt.Printf("Loan created successfully!\n")
 
 	// Extract loan information from the transaction result
 	fmt.Printf("\n=== Loan Information ===\n\n")
-	for _, node := range response.Meta.AffectedNodes {
+	for _, node := range loanSetResponse.Meta.AffectedNodes {
 		if node.CreatedNode != nil && node.CreatedNode.LedgerEntryType == "Loan" {
 			loanJSON, _ := json.MarshalIndent(node.CreatedNode.NewFields, "", "  ")
 			fmt.Printf("%s\n", string(loanJSON))

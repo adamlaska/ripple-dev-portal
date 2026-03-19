@@ -21,7 +21,8 @@ import (
 	"github.com/Peersyst/xrpl-go/xrpl/wallet"
 )
 
-// ptr returns a pointer to the given value.
+// ptr is a helper that returns a pointer to the given value,
+// used for setting optional transaction fields in Go.
 func ptr[T any](v T) *T { return &v }
 
 // metaToMap converts any value to a generic map via JSON round-tripping.

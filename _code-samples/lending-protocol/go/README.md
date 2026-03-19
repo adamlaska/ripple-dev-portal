@@ -178,6 +178,108 @@ go run ./create-loan
 
 The script should output the LoanSet transaction, the updated LoanSet transaction with the loan broker signature, the final LoanSet transaction with the borrower signature added, and then the loan information.
 
+```sh
+Loan broker address: rKHVvo9vMQwm2xz44qfhHyDC2VwYKfzgrX
+Borrower address: rKU5hZEsT71BUgCnnPekEF3d2zn4AXsyqp
+LoanBrokerID: 490DB29AD0CCFBDFE9A176F71AB7512497407CCA37E86F0C88CCDA1DF99A1F09
+
+=== Preparing LoanSet transaction ===
+
+{
+  "Account": "rKHVvo9vMQwm2xz44qfhHyDC2VwYKfzgrX",
+  "Counterparty": "rKU5hZEsT71BUgCnnPekEF3d2zn4AXsyqp",
+  "Fee": "2",
+  "GracePeriod": 604800,
+  "InterestRate": 500,
+  "LastLedgerSequence": 437349,
+  "LoanBrokerID": "490DB29AD0CCFBDFE9A176F71AB7512497407CCA37E86F0C88CCDA1DF99A1F09",
+  "LoanOriginationFee": "100",
+  "LoanServiceFee": "10",
+  "PaymentInterval": 2592000,
+  "PaymentTotal": 12,
+  "PrincipalRequested": "1000",
+  "Sequence": 6905,
+  "TransactionType": "LoanSet"
+}
+
+=== Adding loan broker signature ===
+
+TxnSignature: 9984D6061F4B03734CDCC5A5367A928671FEE1486EFD335B6C875423FCB9FCEF2464F2A610B4DF31875567869696DC36D16F72AFB7D5F245B43C19415537F50F
+SigningPubKey: ED378AB6DCCD0401D6DB3358A9135CE43455A57DAF0CBC459E8D7B6611193690B1
+
+Signed loanSetTx for borrower to sign over:
+{
+  "Account": "rKHVvo9vMQwm2xz44qfhHyDC2VwYKfzgrX",
+  "Counterparty": "rKU5hZEsT71BUgCnnPekEF3d2zn4AXsyqp",
+  "Fee": "2",
+  "GracePeriod": 604800,
+  "InterestRate": 500,
+  "LastLedgerSequence": 437349,
+  "LoanBrokerID": "490DB29AD0CCFBDFE9A176F71AB7512497407CCA37E86F0C88CCDA1DF99A1F09",
+  "LoanOriginationFee": "100",
+  "LoanServiceFee": "10",
+  "PaymentInterval": 2592000,
+  "PaymentTotal": 12,
+  "PrincipalRequested": "1000",
+  "Sequence": 6905,
+  "SigningPubKey": "ED378AB6DCCD0401D6DB3358A9135CE43455A57DAF0CBC459E8D7B6611193690B1",
+  "TransactionType": "LoanSet",
+  "TxnSignature": "9984D6061F4B03734CDCC5A5367A928671FEE1486EFD335B6C875423FCB9FCEF2464F2A610B4DF31875567869696DC36D16F72AFB7D5F245B43C19415537F50F"
+}
+
+=== Adding borrower signature ===
+
+Borrower TxnSignature: 5578161BA5480216644D63428D4FAA6FC761BEA10D91FFB733636AB4EA7C6CC4E07E241BF5418D92FBE9F0133E97CC3E6A2CDC56C86C801438C1CBAC4497B005
+Borrower SigningPubKey: ED2BF9FFE428F80E3E174476EA334E2109BAF6C7309BB08D56A6A97CE0432AD85E
+
+Fully signed LoanSet transaction:
+{
+  "Account": "rKHVvo9vMQwm2xz44qfhHyDC2VwYKfzgrX",
+  "Counterparty": "rKU5hZEsT71BUgCnnPekEF3d2zn4AXsyqp",
+  "CounterpartySignature": {
+    "SigningPubKey": "ED2BF9FFE428F80E3E174476EA334E2109BAF6C7309BB08D56A6A97CE0432AD85E",
+    "TxnSignature": "5578161BA5480216644D63428D4FAA6FC761BEA10D91FFB733636AB4EA7C6CC4E07E241BF5418D92FBE9F0133E97CC3E6A2CDC56C86C801438C1CBAC4497B005"
+  },
+  "Fee": "2",
+  "GracePeriod": 604800,
+  "InterestRate": 500,
+  "LastLedgerSequence": 437349,
+  "LoanBrokerID": "490DB29AD0CCFBDFE9A176F71AB7512497407CCA37E86F0C88CCDA1DF99A1F09",
+  "LoanOriginationFee": "100",
+  "LoanServiceFee": "10",
+  "PaymentInterval": 2592000,
+  "PaymentTotal": 12,
+  "PrincipalRequested": "1000",
+  "Sequence": 6905,
+  "SigningPubKey": "ED378AB6DCCD0401D6DB3358A9135CE43455A57DAF0CBC459E8D7B6611193690B1",
+  "TransactionType": "LoanSet",
+  "TxnSignature": "9984D6061F4B03734CDCC5A5367A928671FEE1486EFD335B6C875423FCB9FCEF2464F2A610B4DF31875567869696DC36D16F72AFB7D5F245B43C19415537F50F"
+}
+
+=== Submitting signed LoanSet transaction ===
+
+Loan created successfully!
+
+=== Loan Information ===
+
+{
+  "Borrower": "rKU5hZEsT71BUgCnnPekEF3d2zn4AXsyqp",
+  "GracePeriod": 604800,
+  "InterestRate": 500,
+  "LoanBrokerID": "490DB29AD0CCFBDFE9A176F71AB7512497407CCA37E86F0C88CCDA1DF99A1F09",
+  "LoanOriginationFee": "100",
+  "LoanSequence": 4,
+  "LoanServiceFee": "10",
+  "NextPaymentDueDate": 829803181,
+  "PaymentInterval": 2592000,
+  "PaymentRemaining": 12,
+  "PeriodicPayment": "83.55610375293148956",
+  "PrincipalOutstanding": "1000",
+  "StartDate": 827211181,
+  "TotalValueOutstanding": "1003"
+}
+```
+
 ---
 
 ## Manage a Loan
