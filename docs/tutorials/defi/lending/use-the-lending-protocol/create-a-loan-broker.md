@@ -30,6 +30,7 @@ To complete this tutorial, you should:
 - Have an XRP Ledger client library set up in your development environment. This page provides examples for the following:
   - **JavaScript** with the [xrpl.js library][]. See [Get Started Using JavaScript][] for setup steps.
   - **Python** with the [xrpl-py library][]. See [Get Started Using Python][] for setup steps.
+  - **Go** with the [xrpl-go library][]. See [Get Started Using Go][] for setup steps.
 
 ## Source Code
 
@@ -56,6 +57,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 {% /tab %}
+{% tab label="Go" %}
+From the code sample folder, use `go` to install dependencies.
+
+```bash
+go mod tidy
+```
+{% /tab %}
 {% /tabs %}
 
 ### 2. Set up client and accounts
@@ -76,6 +84,13 @@ To get started, import the necessary libraries and instantiate a client to conne
 
 {% code-snippet file="/_code-samples/lending-protocol/py/create_loan_broker.py" language="py" before="# This step checks" /%}
 {% /tab %}
+{% tab label="Go" %}
+- `xrpl-go`: Used for XRPL client connection, transaction submission, and wallet handling.
+- `encoding/json` and `fmt`: Used for formatting and printing results to the console.
+- `os` and `os/exec`: Used to run tutorial set up scripts.
+
+{% code-snippet file="/_code-samples/lending-protocol/go/create-loan-broker/main.go" language="go" before="// Check for setup data" /%}
+{% /tab %}
 {% /tabs %}
 
 Next, load the vault owner account and vault ID. The vault owner will also be the loan broker.
@@ -91,6 +106,11 @@ This example uses preconfigured accounts and vault data from the `lendingSetup.j
 
 This example uses preconfigured accounts and vault data from the `lending_setup.py` script, but you can replace `loan_broker` and `vault_id` with your own values.
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/create-loan-broker/main.go" language="go" from="// Check for setup data" before="// Prepare LoanBrokerSet" /%}
+
+This example uses preconfigured accounts and vault data from the `lending-setup` script, but you can replace `loanBrokerWallet` and `vaultID` with your own values.
+{% /tab %}
 {% /tabs %}
 
 ### 3. Prepare LoanBrokerSet transaction
@@ -103,6 +123,9 @@ Create the [LoanBrokerSet transaction][] object.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/create_loan_broker.py" language="py" from="# Prepare LoanBrokerSet" before="# Submit, sign" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/create-loan-broker/main.go" language="go" from="// Prepare LoanBrokerSet" before="// Submit, sign" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -119,6 +142,9 @@ Sign and submit the `LoanBrokerSet` transaction to the XRP Ledger.
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/create_loan_broker.py" language="py" from="# Submit, sign" before="# Extract loan broker" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/create-loan-broker/main.go" language="go" from="// Submit, sign" before="// Extract loan broker" /%}
+{% /tab %}
 {% /tabs %}
 
 Verify that the transaction succeeded by checking for a `tesSUCCESS` result code.
@@ -133,6 +159,9 @@ Retrieve the loan broker's information from the transaction result by checking f
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/create_loan_broker.py" language="py" from="# Extract loan broker" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/create-loan-broker/main.go" language="go" from="// Extract loan broker" /%}
 {% /tab %}
 {% /tabs %}
 
