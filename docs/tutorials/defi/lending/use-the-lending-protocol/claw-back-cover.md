@@ -31,6 +31,7 @@ To complete this tutorial, you should:
 - Have an XRP Ledger client library set up in your development environment. This page provides examples for the following:
   - **JavaScript** with the [xrpl.js library][]. See [Get Started Using JavaScript][] for setup steps.
   - **Python** with the [xrpl-py library][]. See [Get Started Using Python][] for setup steps.
+  - **Go** with the [xrpl-go library][]. See [Get Started Using Go][] for setup steps.
 
 ## Source Code
 
@@ -57,6 +58,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 {% /tab %}
+{% tab label="Go" %}
+From the code sample folder, use `go` to install dependencies.
+
+```bash
+go mod tidy
+```
+{% /tab %}
 {% /tabs %}
 
 ### 2. Set up client and accounts
@@ -77,6 +85,13 @@ To get started, import the necessary libraries and instantiate a client to conne
 
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_clawback.py" language="py" before="# This step checks" /%}
 {% /tab %}
+{% tab label="Go" %}
+- `xrpl-go`: Used for XRPL client connection, transaction submission, and wallet handling.
+- `encoding/json` and `fmt`: Used for formatting and printing results to the console.
+- `os` and `os/exec`: Used to run tutorial set up scripts.
+
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-clawback/main.go" language="go" before="// Check for setup data" /%}
+{% /tab %}
 {% /tabs %}
 
 Next, load the loan broker account, MPT issuer account, loan broker ID, and MPT ID.
@@ -92,6 +107,11 @@ This example uses preconfigured accounts, MPTs, and loan broker data from the `l
 
 This example uses preconfigured accounts, MPTs, and loan broker data from the `lending_setup.py` script, but you can replace `loan_broker`, `mpt_issuer`, `loan_broker_id`, and `mpt_id` with your own values.
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-clawback/main.go" language="go" from="// Check for setup data" before="// Check cover available" /%}
+
+This example uses preconfigured accounts, MPTs, and loan broker data from the `lending-setup` script, but you can replace `loanBrokerWallet`, `mptIssuerWallet`, `loanBrokerID`, and `mptID` with your own values.
+{% /tab %}
 {% /tabs %}
 
 ### 3. Check initial cover available
@@ -104,6 +124,9 @@ Check the initial cover (first-loss capital) available using the [ledger_entry m
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_clawback.py" language="py" from="# Check cover available" before="# Prepare LoanBrokerCoverDeposit" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-clawback/main.go" language="go" from="// Check cover available" before="// Prepare LoanBrokerCoverDeposit" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -124,6 +147,11 @@ The `Amount` field specifies the MPT and amount to deposit as first-loss capital
 
 The `amount` field specifies the MPT and amount to deposit as first-loss capital.
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-clawback/main.go" language="go" from="// Prepare LoanBrokerCoverDeposit" before="// Sign, submit, and wait for deposit validation" /%}
+
+The `Amount` field specifies the MPT and amount to deposit as first-loss capital.
+{% /tab %}
 {% /tabs %}
 
 If the transaction succeeds, the amount is deposited and held in the pseudo-account associated with the `LoanBroker` entry.
@@ -138,6 +166,9 @@ Sign and submit the `LoanBrokerCoverDeposit` transaction to the XRP Ledger.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_clawback.py" language="py" from="# Sign, submit, and wait for deposit validation" before="# Extract updated cover available" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-clawback/main.go" language="go" from="// Sign, submit, and wait for deposit validation" before="// Extract updated cover available" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -154,6 +185,9 @@ Retrieve the cover available from the transaction result by checking the `LoanBr
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_clawback.py" language="py" from="# Extract updated cover available" before="# Verify issuer of cover asset" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-clawback/main.go" language="go" from="// Extract updated cover available" before="// Verify issuer of cover asset" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 7. Verify the asset issuer
@@ -166,6 +200,9 @@ Before executing a clawback, verify that the account submitting the transaction 
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_clawback.py" language="py" from="# Verify issuer of cover asset" before="# Prepare LoanBrokerCoverClawback" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-clawback/main.go" language="go" from="// Verify issuer of cover asset" before="// Prepare LoanBrokerCoverClawback" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -182,6 +219,9 @@ Create the [LoanBrokerCoverClawback transaction][] object.
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_clawback.py" language="py" from="# Prepare LoanBrokerCoverClawback" before="# Sign, submit, and wait for clawback validation" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-clawback/main.go" language="go" from="// Prepare LoanBrokerCoverClawback" before="// Sign, submit, and wait for clawback validation" /%}
+{% /tab %}
 {% /tabs %}
 
 In this example we claw back the entire amount, but you can specify any amount so long as it doesn't exceed the available cover or reduce the cover below the minimum required by the `LoanBroker`.
@@ -197,6 +237,9 @@ Sign and submit the `LoanBrokerCoverClawback` transaction to the XRP Ledger.
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_clawback.py" language="py" from="# Sign, submit, and wait for clawback validation" before="# Extract final cover available" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-clawback/main.go" language="go" from="// Sign, submit, and wait for clawback validation" before="// Extract final cover available" /%}
+{% /tab %}
 {% /tabs %}
 
 Verify that the transaction succeeded by checking for a `tesSUCCESS` result code.
@@ -211,6 +254,9 @@ Retrieve the final cover available from the transaction result.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_clawback.py" language="py" from="# Extract final cover available" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-clawback/main.go" language="go" from="// Extract final cover available" /%}
 {% /tab %}
 {% /tabs %}
 
