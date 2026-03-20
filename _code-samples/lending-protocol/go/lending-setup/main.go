@@ -9,11 +9,10 @@ import (
 	"os"
 	"time"
 
-	binarycodec "github.com/Peersyst/xrpl-go/binary-codec"
 	"github.com/Peersyst/xrpl-go/pkg/crypto"
 	"github.com/Peersyst/xrpl-go/xrpl/faucet"
-	"github.com/Peersyst/xrpl-go/xrpl/queries/account"
-	"github.com/Peersyst/xrpl-go/xrpl/queries/common"
+	ledger "github.com/Peersyst/xrpl-go/xrpl/ledger-entry-types"
+	requests "github.com/Peersyst/xrpl-go/xrpl/queries/transactions"
 	"github.com/Peersyst/xrpl-go/xrpl/rpc"
 	rpctypes "github.com/Peersyst/xrpl-go/xrpl/rpc/types"
 	"github.com/Peersyst/xrpl-go/xrpl/transaction"
@@ -25,87 +24,32 @@ import (
 // used for setting optional transaction fields in Go.
 func ptr[T any](v T) *T { return &v }
 
-// metaToMap converts any value to a generic map via JSON round-tripping.
-func metaToMap(v any) map[string]any {
-	b, _ := json.Marshal(v)
-	var m map[string]any
-	json.Unmarshal(b, &m)
-	return m
-}
-
-// findCreatedNode finds the first CreatedNode with the given LedgerEntryType in AffectedNodes.
-func findCreatedNode(meta map[string]any, ledgerEntryType string) map[string]any {
-	for _, node := range meta["AffectedNodes"].([]any) {
-		nodeMap := node.(map[string]any)
-		if created, ok := nodeMap["CreatedNode"].(map[string]any); ok {
-			if created["LedgerEntryType"] == ledgerEntryType {
-				return created
-			}
-		}
-	}
-	return nil
-}
-
-// submitAndWait submits a transaction with autofill enabled and returns the meta.
-func submitAndWait(client *rpc.Client, flatTx transaction.FlatTransaction, w *wallet.Wallet) (any, map[string]any) {
-	resp, err := client.SubmitTxAndWait(flatTx, &rpctypes.SubmitOptions{
-		Autofill: true,
-		Wallet:   w,
-	})
-	if err != nil {
-		panic(err)
-	}
-	return resp, metaToMap(resp.Meta)
-}
-
-// submitRawAndWait manually autofills, signs, and submits a raw FlatTransaction.
-// Use this for transaction types whose fields are not fully supported by the
-// library's Autofill (e.g., VaultCreate/VaultDeposit with MPT Asset fields).
-func submitRawAndWait(client *rpc.Client, flatTx transaction.FlatTransaction, w *wallet.Wallet) (any, map[string]any) {
-	// Manually autofill: Fee, Sequence, LastLedgerSequence
-	acctInfo, err := client.Request(&account.InfoRequest{
-		Account:     w.GetAddress(),
-		LedgerIndex: common.Current,
-	})
-	if err != nil {
-		panic(err)
-	}
-	acctMap := metaToMap(acctInfo)
-	acctResult := acctMap["result"].(map[string]any)
-	acctData := acctResult["account_data"].(map[string]any)
-	seq := uint32(acctData["Sequence"].(float64))
-	ledgerIdx := uint32(acctResult["ledger_index"].(float64))
-
-	flatTx["Fee"] = "1"
-	flatTx["Sequence"] = seq
-	flatTx["LastLedgerSequence"] = ledgerIdx + 32
-
-	// Sign and encode
-	blob, _, err := w.Sign(flatTx)
-	if err != nil {
-		panic(err)
-	}
-
-	// Submit and wait for validation
-	resp, err := client.SubmitTxBlobAndWait(blob, false)
-	if err != nil {
-		panic(err)
-	}
-	return resp, metaToMap(resp.Meta)
-}
-
 func main() {
-	fmt.Print("Setting up tutorial: 0/6\r")
+	fmt.Print("Setting up tutorial: 0/7\r")
 
 	// Connect to devnet
 	cfg, err := rpc.NewClientConfig(
 		"https://s.devnet.rippletest.net:51234",
 		rpc.WithFaucetProvider(faucet.NewDevnetFaucetProvider()),
+		rpc.WithTimeout(10*time.Second),
 	)
 	if err != nil {
 		panic(err)
 	}
 	client := rpc.NewClient(cfg)
+
+	submitOpts := func(w *wallet.Wallet) *rpctypes.SubmitOptions {
+		return &rpctypes.SubmitOptions{Autofill: true, Wallet: w}
+	}
+
+	// withTicket works around a library issue where Flatten() omits Sequence
+	// when it's 0 (Go zero value). Autofill then fills in the account sequence,
+	// conflicting with TicketSequence. This explicitly sets Sequence to 0 so
+	// Autofill skips it.
+	withTicket := func(flat transaction.FlatTransaction) transaction.FlatTransaction {
+		flat["Sequence"] = uint32(0)
+		return flat
+	}
 
 	// Create and fund wallets concurrently
 	createAndFund := func(ch chan<- wallet.Wallet) {
@@ -115,17 +59,6 @@ func main() {
 		}
 		if err := client.FundWallet(&w); err != nil {
 			panic(err)
-		}
-		// Poll until funded on-ledger (FundWallet returns before validation)
-		for range 20 {
-			_, err := client.Request(&account.InfoRequest{
-				Account:     w.GetAddress(),
-				LedgerIndex: common.Validated,
-			})
-			if err == nil {
-				break
-			}
-			time.Sleep(time.Second)
 		}
 		ch <- w
 	}
@@ -145,362 +78,452 @@ func main() {
 	depositorWallet := <-depWalletCh
 	credIssuerWallet := <-credWalletCh
 
-	fmt.Printf("Loan Broker:  %s\n", loanBrokerWallet.ClassicAddress)
-	fmt.Printf("Borrower:     %s\n", borrowerWallet.ClassicAddress)
-	fmt.Printf("Depositor:    %s\n", depositorWallet.ClassicAddress)
-	fmt.Printf("Cred Issuer:  %s\n", credIssuerWallet.ClassicAddress)
+	fmt.Print("Setting up tutorial: 1/7\r")
 
-	fmt.Print("Setting up tutorial: 1/6\r")
+	// Create tickets for parallel transactions
+	extractTickets := func(resp *requests.TxResponse) []int {
+		var tickets []int
+		for _, node := range resp.Meta.AffectedNodes {
+			if node.CreatedNode != nil && node.CreatedNode.LedgerEntryType == "Ticket" {
+				ticketSeq, _ := node.CreatedNode.NewFields["TicketSequence"].(json.Number).Int64()
+				tickets = append(tickets, int(ticketSeq))
+			}
+		}
+		return tickets
+	}
+
+	ciTicketCh := make(chan []int, 1)
+	lbTicketCh := make(chan []int, 1)
+	brTicketCh := make(chan []int, 1)
+	dpTicketCh := make(chan []int, 1)
+
+	go func() {
+		resp, err := client.SubmitTxAndWait((&transaction.TicketCreate{
+			BaseTx: transaction.BaseTx{
+				Account: credIssuerWallet.GetAddress(),
+			},
+			TicketCount: 4,
+		}).Flatten(), submitOpts(&credIssuerWallet))
+		if err != nil {
+			panic(err)
+		}
+		ciTicketCh <- extractTickets(resp)
+	}()
+
+	go func() {
+		resp, err := client.SubmitTxAndWait((&transaction.TicketCreate{
+			BaseTx: transaction.BaseTx{
+				Account: loanBrokerWallet.GetAddress(),
+			},
+			TicketCount: 4,
+		}).Flatten(), submitOpts(&loanBrokerWallet))
+		if err != nil {
+			panic(err)
+		}
+		lbTicketCh <- extractTickets(resp)
+	}()
+
+	go func() {
+		resp, err := client.SubmitTxAndWait((&transaction.TicketCreate{
+			BaseTx: transaction.BaseTx{
+				Account: borrowerWallet.GetAddress(),
+			},
+			TicketCount: 2,
+		}).Flatten(), submitOpts(&borrowerWallet))
+		if err != nil {
+			panic(err)
+		}
+		brTicketCh <- extractTickets(resp)
+	}()
+
+	go func() {
+		resp, err := client.SubmitTxAndWait((&transaction.TicketCreate{
+			BaseTx: transaction.BaseTx{
+				Account: depositorWallet.GetAddress(),
+			},
+			TicketCount: 2,
+		}).Flatten(), submitOpts(&depositorWallet))
+		if err != nil {
+			panic(err)
+		}
+		dpTicketCh <- extractTickets(resp)
+	}()
+
+	ciTickets := <-ciTicketCh
+	lbTickets := <-lbTicketCh
+	brTickets := <-brTicketCh
+	dpTickets := <-dpTicketCh
+
+	fmt.Print("Setting up tutorial: 2/7\r")
 
 	// Issue MPT with depositor
-	// Create tickets for later use with loanBroker
 	// Set up credentials and domain with credentialIssuer
 	credentialType := hex.EncodeToString([]byte("KYC-Verified"))
 
 	mptData := types.ParsedMPTokenMetadata{
-		Ticker:     "TSTUSD",
-		Name:       "Test USD MPT",
-		Desc:       ptr("A sample non-yield-bearing stablecoin backed by U.S. Treasuries."),
-		Icon:       "https://example.org/tstusd-icon.png",
-		AssetClass: "rwa",
-		IssuerName: "Example Treasury Reserve Co.",
+		Ticker:        "TSTUSD",
+		Name:          "Test USD MPT",
+		Desc:          ptr("A sample non-yield-bearing stablecoin backed by U.S. Treasuries."),
+		Icon:          "https://example.org/tstusd-icon.png",
+		AssetClass:    "rwa",
+		AssetSubclass: ptr("stablecoin"),
+		IssuerName:    "Example Treasury Reserve Co.",
+		URIs: []types.ParsedMPTokenMetadataURI{
+			{
+				URI:      "https://exampletreasury.com/tstusd",
+				Category: "website",
+				Title:    "Product Page",
+			},
+			{
+				URI:      "https://exampletreasury.com/tstusd/reserve",
+				Category: "docs",
+				Title:    "Reserve Attestation",
+			},
+		},
+		AdditionalInfo: map[string]any{
+			"reserve_type":     "U.S. Treasury Bills",
+			"custody_provider": "Example Custodian Bank",
+			"audit_frequency":  "Monthly",
+			"last_audit_date":  "2026-01-15",
+			"pegged_currency":  "USD",
+		},
 	}
 	mptMetadataHex, err := types.EncodeMPTokenMetadata(mptData)
 	if err != nil {
 		panic(err)
 	}
 
-	// Submit ticket create, MPT issuance, and credentials batch concurrently
-	type txResult struct {
-		resp any
-		meta map[string]any
-	}
-
-	ticketCh := make(chan txResult, 1)
-	mptCh := make(chan txResult, 1)
-	credCh := make(chan txResult, 1)
-
-	// Ticket create
-	go func() {
-		ticketTx := (&transaction.TicketCreate{
-			BaseTx: transaction.BaseTx{
-				Account:         loanBrokerWallet.GetAddress(),
-				TransactionType: transaction.TicketCreateTx,
-			},
-			TicketCount: 2,
-		}).Flatten()
-		resp, meta := submitAndWait(client, ticketTx, &loanBrokerWallet)
-		ticketCh <- txResult{resp, meta}
-	}()
+	mptCh := make(chan *requests.TxResponse, 1)
+	domainCh := make(chan *requests.TxResponse, 1)
+	credLbCh := make(chan struct{}, 1)
+	credBrCh := make(chan struct{}, 1)
+	credDpCh := make(chan struct{}, 1)
 
 	// MPT issuance
 	go func() {
-		mptTx := (&transaction.MPTokenIssuanceCreate{
+		resp, err := client.SubmitTxAndWait((&transaction.MPTokenIssuanceCreate{
 			BaseTx: transaction.BaseTx{
-				Account:         depositorWallet.GetAddress(),
-				TransactionType: transaction.MPTokenIssuanceCreateTx,
-				Flags:           0x00000020 | 0x00000040 | 0x00000010, // tfMPTCanTransfer | tfMPTCanClawback | tfMPTCanTrade
+				Account: depositorWallet.GetAddress(),
+				Flags:   transaction.TfMPTCanTransfer | transaction.TfMPTCanClawback | transaction.TfMPTCanTrade,
 			},
 			MaximumAmount:   ptr(types.XRPCurrencyAmount(100000000)),
 			TransferFee:     ptr(uint16(0)),
 			MPTokenMetadata: &mptMetadataHex,
-		}).Flatten()
-		resp, meta := submitAndWait(client, mptTx, &depositorWallet)
-		mptCh <- txResult{resp, meta}
+		}).Flatten(), submitOpts(&depositorWallet))
+		if err != nil {
+			panic(err)
+		}
+		mptCh <- resp
 	}()
 
-	// Credentials batch
+	// PermissionedDomainSet
 	go func() {
-		credBatch := &transaction.Batch{
+		resp, err := client.SubmitTxAndWait(withTicket((&transaction.PermissionedDomainSet{
 			BaseTx: transaction.BaseTx{
-				Account:         credIssuerWallet.GetAddress(),
-				TransactionType: transaction.BatchTx,
+				Account:        credIssuerWallet.GetAddress(),
+				TicketSequence: uint32(ciTickets[0]),
 			},
-			RawTransactions: []types.RawTransaction{
-				{RawTransaction: (&transaction.CredentialCreate{
-					BaseTx: transaction.BaseTx{
-						Account: credIssuerWallet.GetAddress(),
-						Flags:   types.TfInnerBatchTxn,
+			AcceptedCredentials: types.AuthorizeCredentialList{
+				{
+					Credential: types.Credential{
+						Issuer:         credIssuerWallet.GetAddress(),
+						CredentialType: types.CredentialType(credentialType),
 					},
-					CredentialType: types.CredentialType(credentialType),
-					Subject:        loanBrokerWallet.GetAddress(),
-				}).Flatten()},
-				{RawTransaction: (&transaction.CredentialCreate{
-					BaseTx: transaction.BaseTx{
-						Account: credIssuerWallet.GetAddress(),
-						Flags:   types.TfInnerBatchTxn,
-					},
-					CredentialType: types.CredentialType(credentialType),
-					Subject:        borrowerWallet.GetAddress(),
-				}).Flatten()},
-				{RawTransaction: (&transaction.CredentialCreate{
-					BaseTx: transaction.BaseTx{
-						Account: credIssuerWallet.GetAddress(),
-						Flags:   types.TfInnerBatchTxn,
-					},
-					CredentialType: types.CredentialType(credentialType),
-					Subject:        depositorWallet.GetAddress(),
-				}).Flatten()},
-				{RawTransaction: (&transaction.PermissionedDomainSet{
-					BaseTx: transaction.BaseTx{
-						Account: credIssuerWallet.GetAddress(),
-						Flags:   types.TfInnerBatchTxn,
-					},
-					AcceptedCredentials: types.AuthorizeCredentialList{
-						{
-							Credential: types.Credential{
-								Issuer:         credIssuerWallet.GetAddress(),
-								CredentialType: types.CredentialType(credentialType),
-							},
-						},
-					},
-				}).Flatten()},
+				},
 			},
+		}).Flatten()), submitOpts(&credIssuerWallet))
+		if err != nil {
+			panic(err)
 		}
-		credBatch.SetAllOrNothingFlag()
-
-		resp, meta := submitAndWait(client, credBatch.Flatten(), &credIssuerWallet)
-		credCh <- txResult{resp, meta}
+		domainCh <- resp
 	}()
 
-	ticketResult := <-ticketCh
-	mptResult := <-mptCh
-	<-credCh
-
-	// Extract ticket sequence numbers
-	var tickets []int
-	affectedNodes := ticketResult.meta["AffectedNodes"].([]any)
-	for _, node := range affectedNodes {
-		nodeMap := node.(map[string]any)
-		if created, ok := nodeMap["CreatedNode"].(map[string]any); ok {
-			if created["LedgerEntryType"] == "Ticket" {
-				newFields := created["NewFields"].(map[string]any)
-				ticketSeq := int(newFields["TicketSequence"].(float64))
-				tickets = append(tickets, ticketSeq)
-			}
+	// CredentialCreate for loan broker
+	go func() {
+		_, err := client.SubmitTxAndWait(withTicket((&transaction.CredentialCreate{
+			BaseTx: transaction.BaseTx{
+				Account:        credIssuerWallet.GetAddress(),
+				TicketSequence: uint32(ciTickets[1]),
+			},
+			CredentialType: types.CredentialType(credentialType),
+			Subject:        loanBrokerWallet.GetAddress(),
+		}).Flatten()), submitOpts(&credIssuerWallet))
+		if err != nil {
+			panic(err)
 		}
-	}
+		credLbCh <- struct{}{}
+	}()
+
+	// CredentialCreate for borrower
+	go func() {
+		_, err := client.SubmitTxAndWait(withTicket((&transaction.CredentialCreate{
+			BaseTx: transaction.BaseTx{
+				Account:        credIssuerWallet.GetAddress(),
+				TicketSequence: uint32(ciTickets[2]),
+			},
+			CredentialType: types.CredentialType(credentialType),
+			Subject:        borrowerWallet.GetAddress(),
+		}).Flatten()), submitOpts(&credIssuerWallet))
+		if err != nil {
+			panic(err)
+		}
+		credBrCh <- struct{}{}
+	}()
+
+	// CredentialCreate for depositor
+	go func() {
+		_, err := client.SubmitTxAndWait(withTicket((&transaction.CredentialCreate{
+			BaseTx: transaction.BaseTx{
+				Account:        credIssuerWallet.GetAddress(),
+				TicketSequence: uint32(ciTickets[3]),
+			},
+			CredentialType: types.CredentialType(credentialType),
+			Subject:        depositorWallet.GetAddress(),
+		}).Flatten()), submitOpts(&credIssuerWallet))
+		if err != nil {
+			panic(err)
+		}
+		credDpCh <- struct{}{}
+	}()
+
+	mptResp := <-mptCh
+	domainResp := <-domainCh
+	<-credLbCh
+	<-credBrCh
+	<-credDpCh
 
 	// Extract MPT issuance ID
-	mptID := mptResult.meta["mpt_issuance_id"].(string)
+	mptID := string(*mptResp.Meta.MPTIssuanceID)
 
-	// Get domain ID
-	credIssuerObjects, err := client.Request(&account.ObjectsRequest{
-		Account:     credIssuerWallet.GetAddress(),
-		LedgerIndex: common.Validated,
-	})
-	if err != nil {
-		panic(err)
-	}
-
-	objMap := metaToMap(credIssuerObjects)
-	resultMap := objMap["result"].(map[string]any)
-	accountObjects := resultMap["account_objects"].([]any)
+	// Extract domain ID from transaction meta
 	var domainID string
-	for _, obj := range accountObjects {
-		objData := obj.(map[string]any)
-		if objData["LedgerEntryType"] == "PermissionedDomain" {
-			domainID = objData["index"].(string)
+	for _, node := range domainResp.Meta.AffectedNodes {
+		if node.CreatedNode != nil && node.CreatedNode.LedgerEntryType == "PermissionedDomain" {
+			domainID = node.CreatedNode.LedgerIndex
 			break
 		}
 	}
 
-	fmt.Print("Setting up tutorial: 2/6\r")
+	fmt.Print("Setting up tutorial: 3/7\r")
 
 	// Accept credentials and authorize MPT for each account
 	lbCredCh := make(chan struct{}, 1)
+	lbMptCh := make(chan struct{}, 1)
 	brCredCh := make(chan struct{}, 1)
+	brMptCh := make(chan struct{}, 1)
 	depCredCh := make(chan struct{}, 1)
 
-	// Loan broker: accept credential + authorize MPT
+	// Loan broker: accept credential
 	go func() {
-		lbBatch := &transaction.Batch{
+		_, err := client.SubmitTxAndWait(withTicket((&transaction.CredentialAccept{
 			BaseTx: transaction.BaseTx{
-				Account:         loanBrokerWallet.GetAddress(),
-				TransactionType: transaction.BatchTx,
+				Account:        loanBrokerWallet.GetAddress(),
+				TicketSequence: uint32(lbTickets[0]),
 			},
-			RawTransactions: []types.RawTransaction{
-				{RawTransaction: (&transaction.CredentialAccept{
-					BaseTx: transaction.BaseTx{
-						Account: loanBrokerWallet.GetAddress(),
-						Flags:   types.TfInnerBatchTxn,
-					},
-					CredentialType: types.CredentialType(credentialType),
-					Issuer:         credIssuerWallet.GetAddress(),
-				}).Flatten()},
-				{RawTransaction: (&transaction.MPTokenAuthorize{
-					BaseTx: transaction.BaseTx{
-						Account: loanBrokerWallet.GetAddress(),
-						Flags:   types.TfInnerBatchTxn,
-					},
-					MPTokenIssuanceID: mptID,
-				}).Flatten()},
-			},
+			CredentialType: types.CredentialType(credentialType),
+			Issuer:         credIssuerWallet.GetAddress(),
+		}).Flatten()), submitOpts(&loanBrokerWallet))
+		if err != nil {
+			panic(err)
 		}
-		lbBatch.SetAllOrNothingFlag()
-		submitAndWait(client, lbBatch.Flatten(), &loanBrokerWallet)
 		lbCredCh <- struct{}{}
 	}()
 
-	// Borrower: accept credential + authorize MPT
+	// Loan broker: authorize MPT
 	go func() {
-		brBatch := &transaction.Batch{
+		_, err := client.SubmitTxAndWait(withTicket((&transaction.MPTokenAuthorize{
 			BaseTx: transaction.BaseTx{
-				Account:         borrowerWallet.GetAddress(),
-				TransactionType: transaction.BatchTx,
+				Account:        loanBrokerWallet.GetAddress(),
+				TicketSequence: uint32(lbTickets[1]),
 			},
-			RawTransactions: []types.RawTransaction{
-				{RawTransaction: (&transaction.CredentialAccept{
-					BaseTx: transaction.BaseTx{
-						Account: borrowerWallet.GetAddress(),
-						Flags:   types.TfInnerBatchTxn,
-					},
-					CredentialType: types.CredentialType(credentialType),
-					Issuer:         credIssuerWallet.GetAddress(),
-				}).Flatten()},
-				{RawTransaction: (&transaction.MPTokenAuthorize{
-					BaseTx: transaction.BaseTx{
-						Account: borrowerWallet.GetAddress(),
-						Flags:   types.TfInnerBatchTxn,
-					},
-					MPTokenIssuanceID: mptID,
-				}).Flatten()},
-			},
+			MPTokenIssuanceID: mptID,
+		}).Flatten()), submitOpts(&loanBrokerWallet))
+		if err != nil {
+			panic(err)
 		}
-		brBatch.SetAllOrNothingFlag()
-		submitAndWait(client, brBatch.Flatten(), &borrowerWallet)
+		lbMptCh <- struct{}{}
+	}()
+
+	// Borrower: accept credential
+	go func() {
+		_, err := client.SubmitTxAndWait(withTicket((&transaction.CredentialAccept{
+			BaseTx: transaction.BaseTx{
+				Account:        borrowerWallet.GetAddress(),
+				TicketSequence: uint32(brTickets[0]),
+			},
+			CredentialType: types.CredentialType(credentialType),
+			Issuer:         credIssuerWallet.GetAddress(),
+		}).Flatten()), submitOpts(&borrowerWallet))
+		if err != nil {
+			panic(err)
+		}
 		brCredCh <- struct{}{}
+	}()
+
+	// Borrower: authorize MPT
+	go func() {
+		_, err := client.SubmitTxAndWait(withTicket((&transaction.MPTokenAuthorize{
+			BaseTx: transaction.BaseTx{
+				Account:        borrowerWallet.GetAddress(),
+				TicketSequence: uint32(brTickets[1]),
+			},
+			MPTokenIssuanceID: mptID,
+		}).Flatten()), submitOpts(&borrowerWallet))
+		if err != nil {
+			panic(err)
+		}
+		brMptCh <- struct{}{}
 	}()
 
 	// Depositor: accept credential only
 	go func() {
-		credAcceptTx := (&transaction.CredentialAccept{
+		_, err := client.SubmitTxAndWait((&transaction.CredentialAccept{
 			BaseTx: transaction.BaseTx{
-				Account:         depositorWallet.GetAddress(),
-				TransactionType: transaction.CredentialAcceptTx,
+				Account: depositorWallet.GetAddress(),
 			},
 			CredentialType: types.CredentialType(credentialType),
 			Issuer:         credIssuerWallet.GetAddress(),
-		}).Flatten()
-		submitAndWait(client, credAcceptTx, &depositorWallet)
+		}).Flatten(), submitOpts(&depositorWallet))
+		if err != nil {
+			panic(err)
+		}
 		depCredCh <- struct{}{}
 	}()
 
 	<-lbCredCh
+	<-lbMptCh
 	<-brCredCh
+	<-brMptCh
 	<-depCredCh
 
-	fmt.Print("Setting up tutorial: 3/6\r")
+	fmt.Print("Setting up tutorial: 4/7\r")
 
-	// Create private vault and distribute MPT to accounts concurrently.
-	// VaultCreate is not yet available as a Go struct, so we use a raw FlatTransaction.
-	vaultCh := make(chan txResult, 1)
-	distCh := make(chan struct{}, 1)
-
-	go func() {
-		vaultCreateTx := transaction.FlatTransaction{
-			"TransactionType": "VaultCreate",
-			"Account":         loanBrokerWallet.GetAddress().String(),
-			"Asset":           map[string]any{"mpt_issuance_id": mptID},
-			"Flags":           uint32(0x00000001), // tfVaultPrivate
-			"DomainID":        domainID,
-		}
-		resp, meta := submitRawAndWait(client, vaultCreateTx, &loanBrokerWallet)
-		vaultCh <- txResult{resp, meta}
-	}()
+	// Create private vault and distribute MPT to accounts concurrently
+	vaultCh := make(chan *requests.TxResponse, 1)
+	distLbCh := make(chan struct{}, 1)
+	distBrCh := make(chan struct{}, 1)
 
 	go func() {
-		mptAmount := func(value string) map[string]any {
-			return map[string]any{
-				"mpt_issuance_id": mptID,
-				"value":           value,
-			}
-		}
-		distBatch := &transaction.Batch{
+		resp, err := client.SubmitTxAndWait((&transaction.VaultCreate{
 			BaseTx: transaction.BaseTx{
-				Account:         depositorWallet.GetAddress(),
-				TransactionType: transaction.BatchTx,
+				Account: loanBrokerWallet.GetAddress(),
+				Flags:   transaction.TfVaultPrivate,
 			},
-			RawTransactions: []types.RawTransaction{
-				{RawTransaction: transaction.FlatTransaction{
-					"TransactionType": "Payment",
-					"Account":         depositorWallet.GetAddress().String(),
-					"Destination":     loanBrokerWallet.GetAddress().String(),
-					"Amount":          mptAmount("5000"),
-					"Flags":           types.TfInnerBatchTxn,
-				}},
-				{RawTransaction: transaction.FlatTransaction{
-					"TransactionType": "Payment",
-					"Account":         depositorWallet.GetAddress().String(),
-					"Destination":     borrowerWallet.GetAddress().String(),
-					"Amount":          mptAmount("2500"),
-					"Flags":           types.TfInnerBatchTxn,
-				}},
-			},
+			Asset:    ledger.Asset{MPTIssuanceID: mptID},
+			DomainID: &domainID,
+		}).Flatten(), submitOpts(&loanBrokerWallet))
+		if err != nil {
+			panic(err)
 		}
-		distBatch.SetAllOrNothingFlag()
-		submitAndWait(client, distBatch.Flatten(), &depositorWallet)
-		distCh <- struct{}{}
+		vaultCh <- resp
 	}()
 
-	vaultResult := <-vaultCh
-	<-distCh
+	go func() {
+		_, err := client.SubmitTxAndWait(withTicket((&transaction.Payment{
+			BaseTx: transaction.BaseTx{
+				Account:        depositorWallet.GetAddress(),
+				TicketSequence: uint32(dpTickets[0]),
+			},
+			Destination: loanBrokerWallet.GetAddress(),
+			Amount: types.MPTCurrencyAmount{
+				MPTIssuanceID: mptID,
+				Value:         "5000",
+			},
+		}).Flatten()), submitOpts(&depositorWallet))
+		if err != nil {
+			panic(err)
+		}
+		distLbCh <- struct{}{}
+	}()
 
-	vaultNode := findCreatedNode(vaultResult.meta, "Vault")
-	vaultID := vaultNode["LedgerIndex"].(string)
+	go func() {
+		_, err := client.SubmitTxAndWait(withTicket((&transaction.Payment{
+			BaseTx: transaction.BaseTx{
+				Account:        depositorWallet.GetAddress(),
+				TicketSequence: uint32(dpTickets[1]),
+			},
+			Destination: borrowerWallet.GetAddress(),
+			Amount: types.MPTCurrencyAmount{
+				MPTIssuanceID: mptID,
+				Value:         "2500",
+			},
+		}).Flatten()), submitOpts(&depositorWallet))
+		if err != nil {
+			panic(err)
+		}
+		distBrCh <- struct{}{}
+	}()
 
-	fmt.Print("Setting up tutorial: 4/6\r")
+	vaultResp := <-vaultCh
+	<-distLbCh
+	<-distBrCh
+
+	var vaultID string
+	for _, node := range vaultResp.Meta.AffectedNodes {
+		if node.CreatedNode != nil && node.CreatedNode.LedgerEntryType == "Vault" {
+			vaultID = node.CreatedNode.LedgerIndex
+			break
+		}
+	}
+
+	fmt.Print("Setting up tutorial: 5/7\r")
 
 	// Create LoanBroker and deposit MPT into vault
-	lbSetCh := make(chan txResult, 1)
+	lbSetCh := make(chan *requests.TxResponse, 1)
 	vaultDepCh := make(chan struct{}, 1)
 
 	go func() {
-		lbSetTx := (&transaction.LoanBrokerSet{
+		resp, err := client.SubmitTxAndWait((&transaction.LoanBrokerSet{
 			BaseTx: transaction.BaseTx{
-				Account:         loanBrokerWallet.GetAddress(),
-				TransactionType: transaction.LoanBrokerSetTx,
+				Account: loanBrokerWallet.GetAddress(),
 			},
 			VaultID: vaultID,
-		}).Flatten()
-		resp, meta := submitAndWait(client, lbSetTx, &loanBrokerWallet)
-		lbSetCh <- txResult{resp, meta}
+		}).Flatten(), submitOpts(&loanBrokerWallet))
+		if err != nil {
+			panic(err)
+		}
+		lbSetCh <- resp
 	}()
 
 	go func() {
-		// VaultDeposit is not yet available as a Go struct, so we use a raw FlatTransaction.
-		vaultDepositTx := transaction.FlatTransaction{
-			"TransactionType": "VaultDeposit",
-			"Account":         depositorWallet.GetAddress().String(),
-			"VaultID":         vaultID,
-			"Amount": map[string]any{
-				"mpt_issuance_id": mptID,
-				"value":           "50000000",
+		_, err := client.SubmitTxAndWait((&transaction.VaultDeposit{
+			BaseTx: transaction.BaseTx{
+				Account: depositorWallet.GetAddress(),
 			},
+			VaultID: types.Hash256(vaultID),
+			Amount: types.MPTCurrencyAmount{
+				MPTIssuanceID: mptID,
+				Value:         "50000000",
+			},
+		}).Flatten(), submitOpts(&depositorWallet))
+		if err != nil {
+			panic(err)
 		}
-		submitRawAndWait(client, vaultDepositTx, &depositorWallet)
 		vaultDepCh <- struct{}{}
 	}()
 
-	lbSetResult := <-lbSetCh
+	lbSetResp := <-lbSetCh
 	<-vaultDepCh
 
-	loanBrokerNode := findCreatedNode(lbSetResult.meta, "LoanBroker")
-	loanBrokerID := loanBrokerNode["LedgerIndex"].(string)
+	var loanBrokerID string
+	for _, node := range lbSetResp.Meta.AffectedNodes {
+		if node.CreatedNode != nil && node.CreatedNode.LedgerEntryType == "LoanBroker" {
+			loanBrokerID = node.CreatedNode.LedgerIndex
+			break
+		}
+	}
 
-	fmt.Print("Setting up tutorial: 5/6\r")
+	fmt.Print("Setting up tutorial: 6/7\r")
 
 	// Create 2 identical loans with complete repayment due in 30 days
 
 	// Helper function to create, sign, and submit a LoanSet transaction
-	createLoan := func(ticketSequence int) map[string]any {
+	createLoan := func(ticketSequence int) *requests.TxResponse {
 		counterparty := borrowerWallet.GetAddress()
 		loanSetTx := &transaction.LoanSet{
 			BaseTx: transaction.BaseTx{
-				Account:         loanBrokerWallet.GetAddress(),
-				TransactionType: transaction.LoanSetTx,
-				Sequence:        0,
-				TicketSequence:  uint32(ticketSequence),
+				Account:        loanBrokerWallet.GetAddress(),
+				TicketSequence: uint32(ticketSequence),
 			},
 			LoanBrokerID:       loanBrokerID,
 			PrincipalRequested: "1000",
@@ -512,7 +535,7 @@ func main() {
 			LoanServiceFee:     ptr(types.XRPLNumber("10")),
 		}
 
-		flatTx := transaction.FlatTransaction(loanSetTx.Flatten())
+		flatTx := withTicket(loanSetTx.Flatten())
 		if err := client.Autofill(&flatTx); err != nil {
 			panic(err)
 		}
@@ -522,79 +545,84 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		lbPubKey := flatTx["SigningPubKey"].(string)
-		lbSig := flatTx["TxnSignature"].(string)
 
 		// Borrower signs second
-		_, _, err = borrowerWallet.Sign(flatTx)
+		blob, _, err := wallet.SignLoanSetByCounterparty(borrowerWallet, &flatTx, nil)
 		if err != nil {
 			panic(err)
 		}
-		borrowerPubKey := flatTx["SigningPubKey"].(string)
-		borrowerSig := flatTx["TxnSignature"].(string)
 
-		// Restore loan broker's signature, add counterparty signature
-		flatTx["SigningPubKey"] = lbPubKey
-		flatTx["TxnSignature"] = lbSig
-		flatTx["CounterpartySignature"] = map[string]any{
-			"SigningPubKey": borrowerPubKey,
-			"TxnSignature":  borrowerSig,
-		}
-
-		// Encode and submit
-		blob, err := binarycodec.Encode(flatTx)
-		if err != nil {
-			panic(err)
-		}
+		// Submit and wait for validation
 		resp, err := client.SubmitTxBlobAndWait(blob, false)
 		if err != nil {
 			panic(err)
 		}
-		return metaToMap(resp.Meta)
+		return resp
 	}
 
-	loan1Ch := make(chan map[string]any, 1)
-	loan2Ch := make(chan map[string]any, 1)
+	loan1Ch := make(chan *requests.TxResponse, 1)
+	loan2Ch := make(chan *requests.TxResponse, 1)
 
-	go func() { loan1Ch <- createLoan(tickets[0]) }()
-	go func() { loan2Ch <- createLoan(tickets[1]) }()
+	go func() { loan1Ch <- createLoan(lbTickets[2]) }()
+	go func() { loan2Ch <- createLoan(lbTickets[3]) }()
 
-	loan1Meta := <-loan1Ch
-	loan2Meta := <-loan2Ch
+	loan1Resp := <-loan1Ch
+	loan2Resp := <-loan2Ch
 
-	loan1Node := findCreatedNode(loan1Meta, "Loan")
-	loanID1 := loan1Node["LedgerIndex"].(string)
+	var loanID1, loanID2 string
+	for _, node := range loan1Resp.Meta.AffectedNodes {
+		if node.CreatedNode != nil && node.CreatedNode.LedgerEntryType == "Loan" {
+			loanID1 = node.CreatedNode.LedgerIndex
+			break
+		}
+	}
+	for _, node := range loan2Resp.Meta.AffectedNodes {
+		if node.CreatedNode != nil && node.CreatedNode.LedgerEntryType == "Loan" {
+			loanID2 = node.CreatedNode.LedgerIndex
+			break
+		}
+	}
 
-	loan2Node := findCreatedNode(loan2Meta, "Loan")
-	loanID2 := loan2Node["LedgerIndex"].(string)
+	fmt.Print("Setting up tutorial: 7/7\r")
 
-	fmt.Print("Setting up tutorial: 6/6\r")
-
-	// Write setup data to JSON file
-	setupData := map[string]any{
-		"description": "This file is auto-generated by lending-setup. It stores XRPL account info for use in lending protocol tutorials.",
-		"loanBroker": map[string]any{
-			"address": loanBrokerWallet.ClassicAddress,
+	// Write setup data to JSON file.
+	// Using a struct to preserve field order.
+	setupData := struct {
+		Description      string `json:"description"`
+		LoanBroker       any    `json:"loanBroker"`
+		Borrower         any    `json:"borrower"`
+		Depositor        any    `json:"depositor"`
+		CredentialIssuer any    `json:"credentialIssuer"`
+		DomainID         string `json:"domainID"`
+		MptID            string `json:"mptID"`
+		VaultID          string `json:"vaultID"`
+		LoanBrokerID     string `json:"loanBrokerID"`
+		LoanID1          string `json:"loanID1"`
+		LoanID2          string `json:"loanID2"`
+	}{
+		Description: "This file is auto-generated by lending-setup. It stores XRPL account info for use in lending protocol tutorials.",
+		LoanBroker: map[string]string{
+			"address": string(loanBrokerWallet.ClassicAddress),
 			"seed":    loanBrokerWallet.Seed,
 		},
-		"borrower": map[string]any{
-			"address": borrowerWallet.ClassicAddress,
+		Borrower: map[string]string{
+			"address": string(borrowerWallet.ClassicAddress),
 			"seed":    borrowerWallet.Seed,
 		},
-		"depositor": map[string]any{
-			"address": depositorWallet.ClassicAddress,
+		Depositor: map[string]string{
+			"address": string(depositorWallet.ClassicAddress),
 			"seed":    depositorWallet.Seed,
 		},
-		"credentialIssuer": map[string]any{
-			"address": credIssuerWallet.ClassicAddress,
+		CredentialIssuer: map[string]string{
+			"address": string(credIssuerWallet.ClassicAddress),
 			"seed":    credIssuerWallet.Seed,
 		},
-		"domainID":     domainID,
-		"mptID":        mptID,
-		"vaultID":      vaultID,
-		"loanBrokerID": loanBrokerID,
-		"loanID1":      loanID1,
-		"loanID2":      loanID2,
+		DomainID:     domainID,
+		MptID:        mptID,
+		VaultID:      vaultID,
+		LoanBrokerID: loanBrokerID,
+		LoanID1:      loanID1,
+		LoanID2:      loanID2,
 	}
 
 	jsonData, err := json.MarshalIndent(setupData, "", "  ")
