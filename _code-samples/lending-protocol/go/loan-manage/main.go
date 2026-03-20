@@ -10,11 +10,11 @@ import (
 	"os/exec"
 	"time"
 
+	"github.com/Peersyst/xrpl-go/xrpl/flag"
 	"github.com/Peersyst/xrpl-go/xrpl/queries/common"
 	"github.com/Peersyst/xrpl-go/xrpl/queries/ledger"
 	xrpltime "github.com/Peersyst/xrpl-go/xrpl/time"
 	"github.com/Peersyst/xrpl-go/xrpl/transaction"
-	"github.com/Peersyst/xrpl-go/xrpl/transaction/types"
 	"github.com/Peersyst/xrpl-go/xrpl/wallet"
 	"github.com/Peersyst/xrpl-go/xrpl/websocket"
 	wstypes "github.com/Peersyst/xrpl-go/xrpl/websocket/types"
@@ -183,14 +183,12 @@ func main() {
 	}
 	loanFlags := uint32(loanNode["Flags"].(float64))
 
-	// Check which loan flags are set:
-	// 0x00010000 = tfLoanDefault, 0x00020000 = tfLoanImpair
-	// Update to use Contain() flags utility
+	// Check which loan flags are set
 	activeFlags := []string{}
-	if types.IsFlagEnabled(loanFlags, 0x00010000) {
+	if flag.Contains(loanFlags, transaction.TfLoanDefault) {
 		activeFlags = append(activeFlags, "tfLoanDefault")
 	}
-	if types.IsFlagEnabled(loanFlags, 0x00020000) {
+	if flag.Contains(loanFlags, transaction.TfLoanImpair) {
 		activeFlags = append(activeFlags, "tfLoanImpair")
 	}
 	fmt.Printf("Final loan flags: %v\n", activeFlags)
