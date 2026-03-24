@@ -7,8 +7,9 @@ import markdoc from '@markdoc/markdoc';
 import moment from "moment";
 
 export function blogPosts() {
-  /** @type {import("@redocly/realm/dist/server/plugins/types").PluginInstance } */
+  /** @type {import("@redocly/realm/dist/server/types").ExternalPlugin } */
   const instance = {
+    id: 'blog-posts',
     processContent: async (actions, { fs, cache }) => {
       try {
         const posts = [];
