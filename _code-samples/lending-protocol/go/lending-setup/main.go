@@ -12,6 +12,8 @@ import (
 	"github.com/Peersyst/xrpl-go/pkg/crypto"
 	"github.com/Peersyst/xrpl-go/xrpl/faucet"
 	ledger "github.com/Peersyst/xrpl-go/xrpl/ledger-entry-types"
+	"github.com/Peersyst/xrpl-go/xrpl/queries/account"
+	"github.com/Peersyst/xrpl-go/xrpl/queries/common"
 	requests "github.com/Peersyst/xrpl-go/xrpl/queries/transactions"
 	"github.com/Peersyst/xrpl-go/xrpl/rpc"
 	rpctypes "github.com/Peersyst/xrpl-go/xrpl/rpc/types"
@@ -31,7 +33,6 @@ func main() {
 	cfg, err := rpc.NewClientConfig(
 		"https://s.devnet.rippletest.net:51234",
 		rpc.WithFaucetProvider(faucet.NewDevnetFaucetProvider()),
-		rpc.WithTimeout(10*time.Second),
 	)
 	if err != nil {
 		panic(err)
@@ -42,15 +43,6 @@ func main() {
 		return &rpctypes.SubmitOptions{Autofill: true, Wallet: w}
 	}
 
-	// withTicket works around a library issue where Flatten() omits Sequence
-	// when it's 0 (Go zero value). Autofill then fills in the account sequence,
-	// conflicting with TicketSequence. This explicitly sets Sequence to 0 so
-	// Autofill skips it.
-	withTicket := func(flat transaction.FlatTransaction) transaction.FlatTransaction {
-		flat["Sequence"] = uint32(0)
-		return flat
-	}
-
 	// Create and fund wallets concurrently
 	createAndFund := func(ch chan<- wallet.Wallet) {
 		w, err := wallet.New(crypto.ED25519())
@@ -59,6 +51,22 @@ func main() {
 		}
 		if err := client.FundWallet(&w); err != nil {
 			panic(err)
+		}
+		// Poll until account is validated on ledger
+		funded := false
+		for range 20 {
+			_, err := client.Request(&account.InfoRequest{
+				Account:     w.GetAddress(),
+				LedgerIndex: common.Validated,
+			})
+			if err == nil {
+				funded = true
+				break
+			}
+			time.Sleep(time.Second)
+		}
+		if !funded {
+			panic("Issue funding account: " + w.GetAddress().String())
 		}
 		ch <- w
 	}
@@ -81,21 +89,21 @@ func main() {
 	fmt.Print("Setting up tutorial: 1/7\r")
 
 	// Create tickets for parallel transactions
-	extractTickets := func(resp *requests.TxResponse) []int {
-		var tickets []int
+	extractTickets := func(resp *requests.TxResponse) []uint32 {
+		var tickets []uint32
 		for _, node := range resp.Meta.AffectedNodes {
 			if node.CreatedNode != nil && node.CreatedNode.LedgerEntryType == "Ticket" {
 				ticketSeq, _ := node.CreatedNode.NewFields["TicketSequence"].(json.Number).Int64()
-				tickets = append(tickets, int(ticketSeq))
+				tickets = append(tickets, uint32(ticketSeq))
 			}
 		}
 		return tickets
 	}
 
-	ciTicketCh := make(chan []int, 1)
-	lbTicketCh := make(chan []int, 1)
-	brTicketCh := make(chan []int, 1)
-	dpTicketCh := make(chan []int, 1)
+	ciTicketCh := make(chan []uint32, 1)
+	lbTicketCh := make(chan []uint32, 1)
+	brTicketCh := make(chan []uint32, 1)
+	dpTicketCh := make(chan []uint32, 1)
 
 	go func() {
 		resp, err := client.SubmitTxAndWait((&transaction.TicketCreate{
@@ -218,10 +226,11 @@ func main() {
 
 	// PermissionedDomainSet
 	go func() {
-		resp, err := client.SubmitTxAndWait(withTicket((&transaction.PermissionedDomainSet{
+		resp, err := client.SubmitTxAndWait((&transaction.PermissionedDomainSet{
 			BaseTx: transaction.BaseTx{
 				Account:        credIssuerWallet.GetAddress(),
-				TicketSequence: uint32(ciTickets[0]),
+				Sequence:       0,
+				TicketSequence: ciTickets[0],
 			},
 			AcceptedCredentials: types.AuthorizeCredentialList{
 				{
@@ -231,7 +240,7 @@ func main() {
 					},
 				},
 			},
-		}).Flatten()), submitOpts(&credIssuerWallet))
+		}).Flatten(), submitOpts(&credIssuerWallet))
 		if err != nil {
 			panic(err)
 		}
@@ -240,14 +249,15 @@ func main() {
 
 	// CredentialCreate for loan broker
 	go func() {
-		_, err := client.SubmitTxAndWait(withTicket((&transaction.CredentialCreate{
+		_, err := client.SubmitTxAndWait((&transaction.CredentialCreate{
 			BaseTx: transaction.BaseTx{
 				Account:        credIssuerWallet.GetAddress(),
-				TicketSequence: uint32(ciTickets[1]),
+				Sequence:       0,
+				TicketSequence: ciTickets[1],
 			},
 			CredentialType: types.CredentialType(credentialType),
 			Subject:        loanBrokerWallet.GetAddress(),
-		}).Flatten()), submitOpts(&credIssuerWallet))
+		}).Flatten(), submitOpts(&credIssuerWallet))
 		if err != nil {
 			panic(err)
 		}
@@ -256,14 +266,15 @@ func main() {
 
 	// CredentialCreate for borrower
 	go func() {
-		_, err := client.SubmitTxAndWait(withTicket((&transaction.CredentialCreate{
+		_, err := client.SubmitTxAndWait((&transaction.CredentialCreate{
 			BaseTx: transaction.BaseTx{
 				Account:        credIssuerWallet.GetAddress(),
-				TicketSequence: uint32(ciTickets[2]),
+				Sequence:       0,
+				TicketSequence: ciTickets[2],
 			},
 			CredentialType: types.CredentialType(credentialType),
 			Subject:        borrowerWallet.GetAddress(),
-		}).Flatten()), submitOpts(&credIssuerWallet))
+		}).Flatten(), submitOpts(&credIssuerWallet))
 		if err != nil {
 			panic(err)
 		}
@@ -272,14 +283,15 @@ func main() {
 
 	// CredentialCreate for depositor
 	go func() {
-		_, err := client.SubmitTxAndWait(withTicket((&transaction.CredentialCreate{
+		_, err := client.SubmitTxAndWait((&transaction.CredentialCreate{
 			BaseTx: transaction.BaseTx{
 				Account:        credIssuerWallet.GetAddress(),
-				TicketSequence: uint32(ciTickets[3]),
+				Sequence:       0,
+				TicketSequence: ciTickets[3],
 			},
 			CredentialType: types.CredentialType(credentialType),
 			Subject:        depositorWallet.GetAddress(),
-		}).Flatten()), submitOpts(&credIssuerWallet))
+		}).Flatten(), submitOpts(&credIssuerWallet))
 		if err != nil {
 			panic(err)
 		}
@@ -315,14 +327,15 @@ func main() {
 
 	// Loan broker: accept credential
 	go func() {
-		_, err := client.SubmitTxAndWait(withTicket((&transaction.CredentialAccept{
+		_, err := client.SubmitTxAndWait((&transaction.CredentialAccept{
 			BaseTx: transaction.BaseTx{
 				Account:        loanBrokerWallet.GetAddress(),
-				TicketSequence: uint32(lbTickets[0]),
+				Sequence:       0,
+				TicketSequence: lbTickets[0],
 			},
 			CredentialType: types.CredentialType(credentialType),
 			Issuer:         credIssuerWallet.GetAddress(),
-		}).Flatten()), submitOpts(&loanBrokerWallet))
+		}).Flatten(), submitOpts(&loanBrokerWallet))
 		if err != nil {
 			panic(err)
 		}
@@ -331,13 +344,14 @@ func main() {
 
 	// Loan broker: authorize MPT
 	go func() {
-		_, err := client.SubmitTxAndWait(withTicket((&transaction.MPTokenAuthorize{
+		_, err := client.SubmitTxAndWait((&transaction.MPTokenAuthorize{
 			BaseTx: transaction.BaseTx{
 				Account:        loanBrokerWallet.GetAddress(),
-				TicketSequence: uint32(lbTickets[1]),
+				Sequence:       0,
+				TicketSequence: lbTickets[1],
 			},
 			MPTokenIssuanceID: mptID,
-		}).Flatten()), submitOpts(&loanBrokerWallet))
+		}).Flatten(), submitOpts(&loanBrokerWallet))
 		if err != nil {
 			panic(err)
 		}
@@ -346,14 +360,15 @@ func main() {
 
 	// Borrower: accept credential
 	go func() {
-		_, err := client.SubmitTxAndWait(withTicket((&transaction.CredentialAccept{
+		_, err := client.SubmitTxAndWait((&transaction.CredentialAccept{
 			BaseTx: transaction.BaseTx{
 				Account:        borrowerWallet.GetAddress(),
-				TicketSequence: uint32(brTickets[0]),
+				Sequence:       0,
+				TicketSequence: brTickets[0],
 			},
 			CredentialType: types.CredentialType(credentialType),
 			Issuer:         credIssuerWallet.GetAddress(),
-		}).Flatten()), submitOpts(&borrowerWallet))
+		}).Flatten(), submitOpts(&borrowerWallet))
 		if err != nil {
 			panic(err)
 		}
@@ -362,13 +377,14 @@ func main() {
 
 	// Borrower: authorize MPT
 	go func() {
-		_, err := client.SubmitTxAndWait(withTicket((&transaction.MPTokenAuthorize{
+		_, err := client.SubmitTxAndWait((&transaction.MPTokenAuthorize{
 			BaseTx: transaction.BaseTx{
 				Account:        borrowerWallet.GetAddress(),
-				TicketSequence: uint32(brTickets[1]),
+				Sequence:       0,
+				TicketSequence: brTickets[1],
 			},
 			MPTokenIssuanceID: mptID,
-		}).Flatten()), submitOpts(&borrowerWallet))
+		}).Flatten(), submitOpts(&borrowerWallet))
 		if err != nil {
 			panic(err)
 		}
@@ -419,17 +435,18 @@ func main() {
 	}()
 
 	go func() {
-		_, err := client.SubmitTxAndWait(withTicket((&transaction.Payment{
+		_, err := client.SubmitTxAndWait((&transaction.Payment{
 			BaseTx: transaction.BaseTx{
 				Account:        depositorWallet.GetAddress(),
-				TicketSequence: uint32(dpTickets[0]),
+				Sequence:       0,
+				TicketSequence: dpTickets[0],
 			},
 			Destination: loanBrokerWallet.GetAddress(),
 			Amount: types.MPTCurrencyAmount{
 				MPTIssuanceID: mptID,
 				Value:         "5000",
 			},
-		}).Flatten()), submitOpts(&depositorWallet))
+		}).Flatten(), submitOpts(&depositorWallet))
 		if err != nil {
 			panic(err)
 		}
@@ -437,17 +454,18 @@ func main() {
 	}()
 
 	go func() {
-		_, err := client.SubmitTxAndWait(withTicket((&transaction.Payment{
+		_, err := client.SubmitTxAndWait((&transaction.Payment{
 			BaseTx: transaction.BaseTx{
 				Account:        depositorWallet.GetAddress(),
-				TicketSequence: uint32(dpTickets[1]),
+				Sequence:       0,
+				TicketSequence: dpTickets[1],
 			},
 			Destination: borrowerWallet.GetAddress(),
 			Amount: types.MPTCurrencyAmount{
 				MPTIssuanceID: mptID,
 				Value:         "2500",
 			},
-		}).Flatten()), submitOpts(&depositorWallet))
+		}).Flatten(), submitOpts(&depositorWallet))
 		if err != nil {
 			panic(err)
 		}
@@ -518,12 +536,13 @@ func main() {
 	// Create 2 identical loans with complete repayment due in 30 days
 
 	// Helper function to create, sign, and submit a LoanSet transaction
-	createLoan := func(ticketSequence int) *requests.TxResponse {
+	createLoan := func(ticketSequence uint32) *requests.TxResponse {
 		counterparty := borrowerWallet.GetAddress()
 		loanSetTx := &transaction.LoanSet{
 			BaseTx: transaction.BaseTx{
 				Account:        loanBrokerWallet.GetAddress(),
-				TicketSequence: uint32(ticketSequence),
+				Sequence:       0,
+				TicketSequence: ticketSequence,
 			},
 			LoanBrokerID:       loanBrokerID,
 			PrincipalRequested: "1000",
@@ -535,7 +554,7 @@ func main() {
 			LoanServiceFee:     ptr(types.XRPLNumber("10")),
 		}
 
-		flatTx := withTicket(loanSetTx.Flatten())
+		flatTx := transaction.FlatTransaction(loanSetTx.Flatten())
 		if err := client.Autofill(&flatTx); err != nil {
 			panic(err)
 		}
