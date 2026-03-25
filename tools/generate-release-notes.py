@@ -20,7 +20,7 @@ import json
 import re
 import subprocess
 import sys
-from datetime import date
+from datetime import date, datetime
 
 
 # Subsection headings for the changelog (empty until sorted)
@@ -35,6 +35,13 @@ SECTIONS = [
     "CI/Build",
 ]
 
+# Pre-compiled patterns for skipping commits
+SKIP_PATTERNS = [
+    re.compile(r"^Set version to"),
+]
+
+
+# --- API helpers ---
 
 def run_gh_rest(endpoint):
     """Run a gh api REST command and return parsed JSON."""
@@ -62,19 +69,14 @@ def run_gh_graphql(query):
     return json.loads(result.stdout)
 
 
+# --- Data fetching ---
+
 def fetch_version(ref):
     """Fetch the version string from BuildInfo.cpp at the given ref."""
-    result = subprocess.run(
-        ["gh", "api", f"repos/XRPLF/rippled/contents/src/libxrpl/protocol/BuildInfo.cpp?ref={ref}",
-         "--jq", ".content"],
-        capture_output=True,
-        text=True,
+    data = run_gh_rest(
+        f"repos/XRPLF/rippled/contents/src/libxrpl/protocol/BuildInfo.cpp?ref={ref}"
     )
-    if result.returncode != 0:
-        print(f"Error fetching BuildInfo.cpp: {result.stderr}", file=sys.stderr)
-        sys.exit(1)
-
-    content = base64.b64decode(result.stdout.strip()).decode()
+    content = base64.b64decode(data["content"]).decode()
     match = re.search(r'versionString\s*=\s*"([^"]+)"', content)
     if not match:
         print("Error: Could not find versionString in BuildInfo.cpp", file=sys.stderr)
@@ -96,6 +98,45 @@ def fetch_commits(from_ref, to_ref):
             break
         page += 1
     return commits
+
+
+def fetch_version_commit(ref):
+    """Fetch the version-setting commit info via GraphQL for the git log block."""
+    data = run_gh_graphql(f"""
+    {{
+        repository(owner: "XRPLF", name: "rippled") {{
+            object(expression: "{ref}") {{
+                ... on Commit {{
+                    oid
+                    message
+                    author {{
+                        name
+                        email
+                        date
+                    }}
+                }}
+            }}
+        }}
+    }}
+    """)
+    commit = data.get("data", {}).get("repository", {}).get("object")
+    if not commit:
+        return "commit TODO\nAuthor: TODO\nDate:   TODO\n\n    Set version to TODO"
+
+    # Format date from ISO 8601 to git log style
+    raw_date = commit["author"]["date"]
+    try:
+        dt = datetime.fromisoformat(raw_date)
+        formatted_date = dt.strftime("%a %b %-d %H:%M:%S %Y %z")
+    except ValueError:
+        formatted_date = raw_date
+
+    name = commit["author"]["name"]
+    email = commit["author"]["email"]
+    sha = commit["oid"]
+    message = commit["message"].split("\n")[0]
+
+    return f"commit {sha}\nAuthor: {name} <{email}>\nDate:   {formatted_date}\n\n    {message}"
 
 
 def fetch_prs_graphql(pr_numbers):
@@ -137,7 +178,7 @@ def fetch_prs_graphql(pr_numbers):
                 pr_num = int(alias.removeprefix("pr"))
                 results[pr_num] = {
                     "title": pr_data["title"],
-                    "body": strip_html_comments(pr_data.get("body", "")),
+                    "body": strip_html_comments(pr_data.get("body") or ""),
                     "labels": [l["name"] for l in pr_data.get("labels", {}).get("nodes", [])],
                 }
 
@@ -145,6 +186,8 @@ def fetch_prs_graphql(pr_numbers):
 
     return results
 
+
+# --- Utilities ---
 
 def strip_html_comments(text):
     """Strip HTML comment blocks (<!-- ... -->) from text."""
@@ -159,33 +202,34 @@ def extract_pr_number(commit_message):
 
 def should_skip(title):
     """Check if a commit should be skipped."""
-    skip_patterns = [
-        r"^Set version to",
-        r"^Revert \"",
-    ]
-    return any(re.match(pattern, title) for pattern in skip_patterns)
+    return any(pattern.match(title) for pattern in SKIP_PATTERNS)
 
+
+# --- Formatting ---
 
 def format_uncategorized_entry(pr_number, title, labels, body):
     """Format an uncategorized entry with full context for AI sorting."""
     pr_url = f"https://github.com/XRPLF/rippled/pull/{pr_number}"
-    entry = f"- **{title}**\n"
-    entry += f"  - PR: [#{pr_number}]({pr_url})\n"
+    parts = [
+        f"- **{title}**",
+        f"  - PR: [#{pr_number}]({pr_url})",
+    ]
     if labels:
-        entry += f"  - Labels: {', '.join(labels)}\n"
+        parts.append(f"  - Labels: {', '.join(labels)}")
     if body:
         desc = body.split("\n\n")[0].strip()  # First paragraph
         desc = re.sub(r"\s+", " ", desc)  # Collapse whitespace
         if desc:
-            entry += f"  - Description: {desc}\n"
-    return entry
+            parts.append(f"  - Description: {desc}")
+    return "\n".join(parts)
 
 
 def generate_markdown(version, release_date, entries, authors, version_commit):
     """Generate the full markdown release notes."""
     year = release_date.split("-")[0]
+    parts = []
 
-    md = f"""---
+    parts.append(f"""---
 category: {year}
 date: "{release_date}"
 template: '../../@theme/templates/blogpost'
@@ -225,35 +269,39 @@ For other platforms, please [build from source](https://github.com/XRPLF/rippled
 
 
 ## Full Changelog
-
-"""
+""")
 
     # Empty subsection headings for manual/AI sorting
     for section in SECTIONS:
-        md += f"\n### {section}\n\n"
+        parts.append(f"\n### {section}\n")
 
     # Uncategorized entries with full context
-    md += "\n### Uncategorized\n\n"
-    md += "<!-- Sort the entries below into the subsections above. -->\n\n"
+    parts.append("<!-- Sort the entries below into the subsections above. Remove this comment after sorting. -->\n")
     for entry in entries:
-        md += entry + "\n"
+        parts.append(entry)
 
     # Credits
-    md += "\n\n## Credits\n\nThe following RippleX teams and GitHub users contributed to this release:\n\n- RippleX Engineering\n- RippleX Docs\n-RippleX Product"
+    parts.append("\n\n## Credits\n")
+    parts.append("The following RippleX teams and GitHub users contributed to this release:\n")
+    parts.append("- RippleX Engineering")
+    parts.append("- RippleX Docs")
+    parts.append("- RippleX Product")
     for author in sorted(authors):
-        md += f"- {author}\n"
+        parts.append(f"- {author}")
 
-    md += """
+    parts.append("""
 
 ## Bug Bounties and Responsible Disclosures
 
 We welcome reviews of the `rippled` code and urge researchers to responsibly disclose any issues they may find.
 
 To report a bug, please send a detailed report to: <bugs@xrpl.org>
-"""
+""")
 
-    return md
+    return "\n".join(parts)
 
+
+# --- Main ---
 
 def main():
     parser = argparse.ArgumentParser(description="Generate rippled release notes")
@@ -276,25 +324,21 @@ def main():
     commits = fetch_commits(args.from_ref, args.to_ref)
     print(f"Found {len(commits)} commits")
 
+    print(f"Fetching version commit info...")
+    version_commit = fetch_version_commit(args.to_ref)
+
     # Extract unique PR numbers and track authors
     pr_numbers = {}
     authors = set()
-    version_commit = "commit TODO\nAuthor: TODO\nDate:   TODO\n\n    Set version to " + version
 
     for commit in commits:
         message = commit["commit"]["message"].split("\n")[0]
         author = commit["commit"]["author"]["name"]
-        gh_user = commit.get("author", {})
+        gh_user = commit.get("author") or {}
         if gh_user:
             authors.add(f"@{gh_user.get('login', author)}")
         else:
             authors.add(author)
-
-        # Capture version commit info
-        if message.startswith("Set version to"):
-            sha = commit["sha"]
-            date_str = commit["commit"]["author"]["date"]
-            version_commit = f"commit {sha}\nAuthor: {author}\nDate:   {date_str}\n\n    {message}"
 
         pr_number = extract_pr_number(message)
         if pr_number and pr_number not in pr_numbers:
