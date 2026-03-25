@@ -33,6 +33,7 @@ To complete this tutorial, you should:
 - Have an XRP Ledger client library set up in your development environment. This page provides examples for the following:
   - **JavaScript** with the [xrpl.js library][]. See [Get Started Using JavaScript][] for setup steps.
   - **Python** with the [xrpl-py library][]. See [Get Started Using Python][] for setup steps.
+  - **Go** with the [xrpl-go library][]. See [Get Started Using Go][] for setup steps.
 
 ## Source Code
 
@@ -59,6 +60,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 {% /tab %}
+{% tab label="Go" %}
+From the code sample folder, use `go` to install dependencies.
+
+```bash
+go mod tidy
+```
+{% /tab %}
 {% /tabs %}
 
 ### 2. Set up client and accounts
@@ -79,6 +87,13 @@ To get started, import the necessary libraries and instantiate a client to conne
 
 {% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" before="# This step checks" /%}
 {% /tab %}
+{% tab label="Go" %}
+- `xrpl-go`: Used for XRPL client connection, transaction submission, and wallet handling.
+- `encoding/json` and `fmt`: Used for formatting and printing results to the console.
+- `os` and `os/exec`: Used to run tutorial set up scripts.
+
+{% code-snippet file="/_code-samples/lending-protocol/go/create-loan/main.go" language="go" before="// Check for setup data" /%}
+{% /tab %}
 {% /tabs %}
 
 Next, load the loan broker account, borrower account, and loan broker ID.
@@ -93,6 +108,11 @@ This example uses preconfigured accounts and loan broker data from the `lendingS
 {% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# This step checks" before="# Prepare LoanSet" /%}
 
 This example uses preconfigured accounts and loan broker data from the `lending_setup.py` script, but you can replace `loan_broker`, `borrower`, and `loan_broker_id` with your own values.
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/create-loan/main.go" language="go" from="// Check for setup data" before="// Prepare LoanSet" /%}
+
+This example uses preconfigured accounts and loan broker data from the `lending-setup` script, but you can replace `loanBrokerWallet`, `borrowerWallet`, and `loanBrokerID` with your own values.
 {% /tab %}
 {% /tabs %}
 
@@ -129,6 +149,20 @@ The loan terms include:
 - `loan_origination_fee`: A one-time fee charged when the loan is created, paid in the borrowed asset.
 - `loan_service_fee`: A fee charged with every loan payment, paid in the borrowed asset.
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/create-loan/main.go" language="go" from="// Prepare LoanSet" before="// Loan broker signs first" /%}
+
+The `Account` field is the loan broker, and the `Counterparty` field is the borrower. These fields can be swapped, but determine the signing order: the `Account` signs first, and the `Counterparty` signs second.
+
+The loan terms include:
+- `PrincipalRequested`: The amount of an asset requested by the borrower. You don't have to specify the type of asset in this field.
+- `InterestRate`: The annualized interest rate in 1/10th basis points (500 = 0.5%).
+- `PaymentTotal`: The number of payments to be made.
+- `PaymentInterval`: The number of seconds between payments (2592000 = 30 days).
+- `GracePeriod`: The number of seconds after a missed payment before the loan can be defaulted (604800 = 7 days).
+- `LoanOriginationFee`: A one-time fee charged when the loan is created, paid in the borrowed asset.
+- `LoanServiceFee`: A fee charged with every loan payment, paid in the borrowed asset.
+{% /tab %}
 {% /tabs %}
 
 ### 4. Add loan broker signature
@@ -141,6 +175,9 @@ The loan broker (the `Account`) signs the transaction first, adding their `TxnSi
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# Loan broker signs first" before="# Borrower signs second" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/create-loan/main.go" language="go" from="// Loan broker signs first" before="// Borrower signs second" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -155,6 +192,9 @@ The borrower (the `Counterparty`) signs the transaction second. Their `TxnSignat
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# Borrower signs second" before="# Submit and wait" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/create-loan/main.go" language="go" from="// Borrower signs second" before="// Submit and wait" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 6. Submit LoanSet transaction
@@ -167,6 +207,9 @@ Submit the fully signed `LoanSet` transaction to the XRP Ledger.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# Submit and wait" before="# Extract loan information" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/create-loan/main.go" language="go" from="// Submit and wait" before="// Extract loan information" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -182,6 +225,9 @@ Retrieve the loan's information from the transaction result by checking for the 
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/create_loan.py" language="py" from="# Extract loan information" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/create-loan/main.go" language="go" from="// Extract loan information" /%}
 {% /tab %}
 {% /tabs %}
 

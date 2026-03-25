@@ -33,6 +33,7 @@ To complete this tutorial, you should:
 - Have an XRP Ledger client library set up in your development environment. This page provides examples for the following:
   - **JavaScript** with the [xrpl.js library][]. See [Get Started Using JavaScript][] for setup steps.
   - **Python** with the [xrpl-py library][]. See [Get Started Using Python][] for setup steps.
+  - **Go** with the [xrpl-go library][]. See [Get Started Using Go][] for setup steps.
 
 ## Source Code
 
@@ -59,6 +60,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 {% /tab %}
+{% tab label="Go" %}
+From the code sample folder, use `go` to install dependencies.
+
+```bash
+go mod tidy
+```
+{% /tab %}
 {% /tabs %}
 
 ### 2. Set up client and accounts
@@ -80,6 +88,14 @@ To get started, import the necessary libraries and instantiate a client to conne
 
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_manage.py" language="py" before="# This step checks" /%}
 {% /tab %}
+{% tab label="Go" %}
+- `xrpl-go`: Used for XRPL client connection, transaction submission, and wallet handling.
+- `encoding/json` and `fmt`: Used for formatting and printing results to the console.
+- `os` and `os/exec`: Used to run tutorial set up scripts.
+- `time`: Used for grace period countdown and date formatting.
+
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-manage/main.go" language="go" before="// Check for setup data" /%}
+{% /tab %}
 {% /tabs %}
 
 Next, load the loan broker account and loan ID.
@@ -95,6 +111,11 @@ This example uses preconfigured accounts and loan data from the `lendingSetup.js
 
 This example uses preconfigured accounts and loan data from the `lending_setup.py` script, but you can replace `loan_broker` and `loan_id` with your own values.
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-manage/main.go" language="go" from="// Check for setup data" before="// Check loan status" /%}
+
+This example uses preconfigured accounts and loan data from the `lending-setup` script, but you can replace `loanBrokerWallet` and `loanID` with your own values.
+{% /tab %}
 {% /tabs %}
 
 ### 3. Check loan status
@@ -107,6 +128,9 @@ Check the current status of the loan using the [ledger_entry method][].
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_manage.py" language="py" from="# Check loan status" before="# Prepare LoanManage transaction to impair" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-manage/main.go" language="go" from="// Check loan status" before="// Prepare LoanManage transaction to impair" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -123,6 +147,9 @@ Create the [LoanManage transaction][] with the `tfLoanImpair` flag.
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_manage.py" language="py" from="# Prepare LoanManage transaction to impair" before="# Sign, submit, and wait for impairment" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-manage/main.go" language="go" from="// Prepare LoanManage transaction to impair" before="// Sign, submit, and wait for impairment" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 5. Submit LoanManage impairment transaction
@@ -135,6 +162,9 @@ Sign and submit the `LoanManage` transaction to impair the loan.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_manage.py" language="py" from="# Sign, submit, and wait for impairment" before="# Extract loan impairment info" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-manage/main.go" language="go" from="// Sign, submit, and wait for impairment" before="// Extract loan impairment info" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -151,6 +181,9 @@ Retrieve the loan's grace period and updated payment due date from the transacti
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_manage.py" language="py" from="# Extract loan impairment info" before="# Countdown until loan can be defaulted" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-manage/main.go" language="go" from="// Extract loan impairment info" before="// Countdown until loan can be defaulted" /%}
+{% /tab %}
 {% /tabs %}
 
 The loan can only be defaulted after the grace period expires. The example calculates when the grace period ends and displays a countdown.
@@ -166,6 +199,9 @@ This countdown displays the remaining seconds in real-time. Once the grace perio
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_manage.py" language="py" from="# Countdown until loan can be defaulted" before="# Prepare LoanManage transaction to default" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-manage/main.go" language="go" from="// Countdown until loan can be defaulted" before="// Prepare LoanManage transaction to default" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 8. Prepare LoanManage transaction to default the loan
@@ -179,6 +215,9 @@ After the grace period expires, create a `LoanManage` transaction with the `tfLo
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_manage.py" language="py" from="# Prepare LoanManage transaction to default" before="# Sign, submit, and wait for default" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-manage/main.go" language="go" from="// Prepare LoanManage transaction to default" before="// Sign, submit, and wait for default" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 9. Submit LoanManage default transaction
@@ -191,6 +230,9 @@ Sign and submit the `LoanManage` transaction to default the loan.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_manage.py" language="py" from="# Sign, submit, and wait for default" before="# Verify loan default status" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-manage/main.go" language="go" from="// Sign, submit, and wait for default" before="// Verify loan default status" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -206,6 +248,9 @@ Confirm the loan has been defaulted by checking the loan flags.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_manage.py" language="py" from="# Verify loan default status" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-manage/main.go" language="go" from="// Verify loan default status" /%}
 {% /tab %}
 {% /tabs %}
 

@@ -33,6 +33,7 @@ To complete this tutorial, you should:
 - Have an XRP Ledger client library set up in your development environment. This page provides examples for the following:
   - **JavaScript** with the [xrpl.js library][]. See [Get Started Using JavaScript][] for setup steps.
   - **Python** with the [xrpl-py library][]. See [Get Started Using Python][] for setup steps.
+  - **Go** with the [xrpl-go library][]. See [Get Started Using Go][] for setup steps.
 
 ## Source Code
 
@@ -59,6 +60,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 {% /tab %}
+{% tab label="Go" %}
+From the code sample folder, use `go` to install dependencies.
+
+```bash
+go mod tidy
+```
+{% /tab %}
 {% /tabs %}
 
 ### 2. Set up client and accounts
@@ -79,6 +87,14 @@ To get started, import the necessary libraries and instantiate a client to conne
 
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" before="# This step checks" /%}
 {% /tab %}
+{% tab label="Go" %}
+- `xrpl-go`: Used for XRPL client connection, transaction submission, and wallet handling.
+- `encoding/json` and `fmt`: Used for formatting and printing results to the console.
+- `math/big`: Used for calculating the total payment amount.
+- `os` and `os/exec`: Used to run tutorial set up scripts.
+
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-pay/main.go" language="go" before="// Check for setup data" /%}
+{% /tab %}
 {% /tabs %}
 
 Next, load the borrower account, loan ID, and MPT issuance ID.
@@ -94,6 +110,11 @@ This example uses preconfigured accounts and loan data from the `lendingSetup.js
 
 This example uses preconfigured accounts and loan data from the `lending_setup.py` script, but you can replace `borrower`, `loan_id`, and `mpt_id` with your own values.
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-pay/main.go" language="go" from="// Check for setup data" before="// Check initial loan status" /%}
+
+This example uses preconfigured accounts and loan data from the `lending-setup` script, but you can replace `borrowerWallet`, `loanID`, and `mptID` with your own values.
+{% /tab %}
 {% /tabs %}
 
 ### 3. Check loan status
@@ -106,6 +127,9 @@ Check the current status of the loan using the [ledger_entry method][].
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Check initial loan status" before="# Prepare LoanPay transaction" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-pay/main.go" language="go" from="// Check initial loan status" before="// Prepare LoanPay transaction" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -126,6 +150,9 @@ Create the [LoanPay transaction][] with the total payment amount.
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Prepare LoanPay transaction" before="# Sign, submit, and wait for payment validation" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-pay/main.go" language="go" from="// Prepare LoanPay transaction" before="// Sign, submit, and wait for payment validation" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 5. Submit LoanPay transaction
@@ -138,6 +165,9 @@ Sign and submit the `LoanPay` transaction to the XRP Ledger.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Sign, submit, and wait for payment validation" before="# Extract updated loan info" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-pay/main.go" language="go" from="// Sign, submit, and wait for payment validation" before="// Extract updated loan info" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -154,6 +184,9 @@ Retrieve the loan balance from the transaction result by checking for the `Loan`
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Extract updated loan info" before="# Prepare LoanDelete transaction" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-pay/main.go" language="go" from="// Extract updated loan info" before="// Prepare LoanDelete transaction" /%}
+{% /tab %}
 {% /tabs %}
 
 If `TotalValueOutstanding` is absent from the loan metadata, the loan has been fully paid off and is ready for deletion.
@@ -168,6 +201,9 @@ Create a [LoanDelete transaction][] to remove the paid loan from the XRP Ledger.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Prepare LoanDelete transaction" before="# Sign, submit, and wait for deletion validation" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-pay/main.go" language="go" from="// Prepare LoanDelete transaction" before="// Sign, submit, and wait for deletion validation" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -184,6 +220,9 @@ Sign and submit the `LoanDelete` transaction.
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Sign, submit, and wait for deletion validation" before="# Verify loan deletion" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-pay/main.go" language="go" from="// Sign, submit, and wait for deletion validation" before="// Verify loan deletion" /%}
+{% /tab %}
 {% /tabs %}
 
 Verify that the transaction succeeded by checking for a `tesSUCCESS` result code.
@@ -198,6 +237,9 @@ Confirm that the loan has been removed from the XRP Ledger.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/loan_pay.py" language="py" from="# Verify loan deletion" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/loan-pay/main.go" language="go" from="// Verify loan deletion" /%}
 {% /tab %}
 {% /tabs %}
 
