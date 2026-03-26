@@ -34,6 +34,29 @@ SECTIONS = [
     "CI/Build",
 ]
 
+
+# Emails to exclude from credits (Ripple employees not using @ripple.com).
+# Commits from @ripple.com addresses are already filtered automatically.
+EXCLUDED_EMAILS = {
+    "3maisons@gmail.com",                                   # Luc des Trois Maisons
+    "a1q123456@users.noreply.github.com",                   # Jingchen Wu
+    "bthomee@users.noreply.github.com",                     # Bart Thomee
+    "21219765+ckeshava@users.noreply.github.com",           # Chenna Keshava B S
+    "gregtatcam@users.noreply.github.com",                  # Gregory Tsipenyuk
+    "kuzzz99@gmail.com",                                    # Sergey Kuznetsov
+    "legleux@users.noreply.github.com",                     # Michael Legleux
+    "mathbunnyru@users.noreply.github.com",                 # Ayaz Salikhov
+    "mvadari@gmail.com",                                    # Mayukha Vadari
+    "115580134+oleks-rip@users.noreply.github.com",         # Oleksandr Pidskopnyi
+    "3397372+pratikmankawde@users.noreply.github.com",      # Pratik Mankawde
+    "35279399+shawnxie999@users.noreply.github.com",        # Shawn Xie
+    "5780819+Tapanito@users.noreply.github.com",            # Vito Tumas
+    "13349202+vlntb@users.noreply.github.com",              # Valentin Balaschenko
+    "129996061+vvysokikh1@users.noreply.github.com",        # Vladislav Vysokikh
+    "vvysokikh@gmail.com",                                  # Vladislav Vysokikh
+}
+
+
 # Pre-compiled patterns for skipping version commits
 SKIP_PATTERNS = [
     re.compile(r"^Set version to", re.IGNORECASE),
@@ -59,16 +82,20 @@ def run_gh_rest(endpoint):
 
 
 def run_gh_graphql(query):
-    """Run a gh api graphql command and return parsed JSON."""
+    """Run a gh api graphql command and return parsed JSON.
+    Handles partial failures (e.g., missing PRs) by returning
+    whatever data is available alongside errors.
+    """
     result = subprocess.run(
         ["gh", "api", "graphql", "-f", f"query={query}"],
         capture_output=True,
         text=True,
     )
-    if result.returncode != 0:
+    try:
+        return json.loads(result.stdout)
+    except (json.JSONDecodeError, TypeError):
         print(f"Error running graphql: {result.stderr}", file=sys.stderr)
         sys.exit(1)
-    return json.loads(result.stdout)
 
 
 # --- Data fetching ---
@@ -143,12 +170,15 @@ def fetch_version_commit(ref):
 
 def fetch_prs_graphql(pr_numbers):
     """Fetch PR details in batches using GitHub GraphQL API.
-    Returns a dict of {pr_number: {title, body, labels}}.
+    Falls back to issue lookup for numbers that aren't PRs.
+    Returns a dict of {number: {title, body, labels, type}}.
     """
     results = {}
+    missing = []
     batch_size = 50
     pr_list = list(pr_numbers)
 
+    # Fetch PRs
     for i in range(0, len(pr_list), batch_size):
         batch = pr_list[i:i + batch_size]
 
@@ -176,15 +206,57 @@ def fetch_prs_graphql(pr_numbers):
         repo_data = data.get("data", {}).get("repository", {})
 
         for alias, pr_data in repo_data.items():
+            pr_num = int(alias.removeprefix("pr"))
             if pr_data:
-                pr_num = int(alias.removeprefix("pr"))
                 results[pr_num] = {
                     "title": pr_data["title"],
                     "body": clean_pr_body(pr_data.get("body") or ""),
                     "labels": [l["name"] for l in pr_data.get("labels", {}).get("nodes", [])],
+                    "type": "pull",
                 }
+            else:
+                missing.append(pr_num)
 
         print(f"  Fetched {min(i + batch_size, len(pr_list))}/{len(pr_list)} PRs...")
+
+    # Fetch missing numbers as issues
+    if missing:
+        print(f"  Looking up {len(missing)} missing numbers as issues...")
+        for i in range(0, len(missing), batch_size):
+            batch = missing[i:i + batch_size]
+
+            fragments = []
+            for num in batch:
+                fragments.append(f"""
+                    issue{num}: issue(number: {num}) {{
+                        title
+                        body
+                        labels(first: 10) {{
+                            nodes {{ name }}
+                        }}
+                    }}
+                """)
+
+            query = f"""
+            {{
+                repository(owner: "XRPLF", name: "rippled") {{
+                    {"".join(fragments)}
+                }}
+            }}
+            """
+
+            data = run_gh_graphql(query)
+            repo_data = data.get("data", {}).get("repository", {})
+
+            for alias, issue_data in repo_data.items():
+                if issue_data:
+                    num = int(alias.removeprefix("issue"))
+                    results[num] = {
+                        "title": issue_data["title"],
+                        "body": clean_pr_body(issue_data.get("body") or ""),
+                        "labels": [l["name"] for l in issue_data.get("labels", {}).get("nodes", [])],
+                        "type": "issues",
+                    }
 
     return results
 
@@ -199,7 +271,9 @@ def clean_pr_body(text):
     text = re.sub(r"^- \[ \] .+$", "", text, flags=re.MULTILINE)
     # Remove all markdown headings
     text = re.sub(r"^#{1,6} .+$", "", text, flags=re.MULTILINE)
-    # Convert PR references (#1234) to full GitHub links
+    # Convert bare GitHub URLs to markdown links
+    text = re.sub(r"(?<!\()https://github\.com/XRPLF/rippled/(pull|issues)/(\d+)", r"[#\2](https://github.com/XRPLF/rippled/\1/\2)", text)
+    # Convert remaining bare PR/issue references (#1234) to full GitHub links
     text = re.sub(r"(?<!\[)#(\d+)(?!\])", r"[#\1](https://github.com/XRPLF/rippled/pull/\1)", text)
     # Collapse multiple blank lines into one
     text = re.sub(r"\n{3,}", "\n\n", text)
@@ -219,12 +293,12 @@ def should_skip(title):
 
 # --- Formatting ---
 
-def format_uncategorized_entry(pr_number, title, labels, body):
+def format_uncategorized_entry(pr_number, title, labels, body, link_type="pull"):
     """Format an uncategorized entry with full context for AI sorting."""
-    pr_url = f"https://github.com/XRPLF/rippled/pull/{pr_number}"
+    url = f"https://github.com/XRPLF/rippled/{link_type}/{pr_number}"
     parts = [
         f"- **{title.strip()}**",
-        f"  - PR: [#{pr_number}]({pr_url})",
+        f"  - Link: [#{pr_number}]({url})",
     ]
     if labels:
         parts.append(f"  - Labels: {', '.join(labels)}")
@@ -346,14 +420,18 @@ def main():
     for commit in commits:
         message = commit["commit"]["message"].split("\n")[0]
         author = commit["commit"]["author"]["name"]
-        gh_user = commit.get("author") or {}
-        if gh_user:
-            authors.add(f"@{gh_user.get('login', author)}")
-        else:
-            authors.add(author)
+        email = commit["commit"]["author"].get("email", "")
+
+        # Skip Ripple employees from credits
+        login = (commit.get("author") or {}).get("login")
+        if not email.lower().endswith("@ripple.com") and email not in EXCLUDED_EMAILS:
+            if login:
+                authors.add(f"@{login}")
+            else:
+                authors.add(author)
 
         pr_number = extract_pr_number(message)
-        if pr_number and pr_number not in pr_numbers:
+        if pr_number:
             pr_numbers[pr_number] = message
 
     # Filter out skippable commits
@@ -375,8 +453,9 @@ def main():
         title = pr_data["title"] if pr_data else commit_msg
         body = pr_data.get("body", "") if pr_data else ""
         labels = pr_data.get("labels", []) if pr_data else []
+        link_type = pr_data.get("type", "pull") if pr_data else "pull"
 
-        entry = format_uncategorized_entry(pr_number, title, labels, body)
+        entry = format_uncategorized_entry(pr_number, title, labels, body, link_type)
         entries.append(entry)
 
     # Generate markdown
@@ -387,7 +466,6 @@ def main():
         f.write(markdown)
 
     print(f"\nRelease notes written to: {output_path}")
-    print(f"Total entries: {len(entries)}")
 
 
 if __name__ == "__main__":
