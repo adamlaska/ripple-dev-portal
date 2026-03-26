@@ -1,13 +1,12 @@
 """
 Generate rippled release notes from GitHub commit history.
-The version number is auto-detected from BuildInfo.cpp in the --to ref.
 
 Usage (from repo root):
-    python3 tools/generate-release-notes.py --from 3.0.0 --to 3.1.0 [--date 2026-03-24] [--output path/to/file.md]
+    python3 tools/generate-release-notes.py --from release-3.0 --to release-3.1 [--date 2026-03-24] [--output path/to/file.md]
 
 Arguments:
-    --from      (required) Base ref — tag or branch to compare from.
-    --to        (required) Target ref — tag or branch to compare to.
+    --from      (required) Base ref — must match exact tag or branch to compare from.
+    --to        (required) Target ref — must match exact tag or branch to compare to.
     --date      (optional) Release date in YYYY-MM-DD format. Defaults to today.
     --output    (optional) Output file path. Defaults to blog/<year>/rippled-<version>.md.
 
@@ -35,9 +34,12 @@ SECTIONS = [
     "CI/Build",
 ]
 
-# Pre-compiled patterns for skipping commits
+# Pre-compiled patterns for skipping version commits
 SKIP_PATTERNS = [
-    re.compile(r"^Set version to"),
+    re.compile(r"^Set version to", re.IGNORECASE),
+    re.compile(r"^Version \d", re.IGNORECASE),
+    re.compile(r"bump version to", re.IGNORECASE),
+    re.compile(r"^Merge tag ", re.IGNORECASE),
 ]
 
 
@@ -178,7 +180,7 @@ def fetch_prs_graphql(pr_numbers):
                 pr_num = int(alias.removeprefix("pr"))
                 results[pr_num] = {
                     "title": pr_data["title"],
-                    "body": strip_html_comments(pr_data.get("body") or ""),
+                    "body": clean_pr_body(pr_data.get("body") or ""),
                     "labels": [l["name"] for l in pr_data.get("labels", {}).get("nodes", [])],
                 }
 
@@ -189,9 +191,19 @@ def fetch_prs_graphql(pr_numbers):
 
 # --- Utilities ---
 
-def strip_html_comments(text):
-    """Strip HTML comment blocks (<!-- ... -->) from text."""
-    return re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL).strip()
+def clean_pr_body(text):
+    """Strip HTML comments and PR template boilerplate from body text."""
+    # Remove HTML comments
+    text = re.sub(r"<!--.*?-->", "", text, flags=re.DOTALL)
+    # Remove unchecked checkbox lines, keep checked ones
+    text = re.sub(r"^- \[ \] .+$", "", text, flags=re.MULTILINE)
+    # Remove all markdown headings
+    text = re.sub(r"^#{1,6} .+$", "", text, flags=re.MULTILINE)
+    # Convert PR references (#1234) to full GitHub links
+    text = re.sub(r"(?<!\[)#(\d+)(?!\])", r"[#\1](https://github.com/XRPLF/rippled/pull/\1)", text)
+    # Collapse multiple blank lines into one
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
 
 
 def extract_pr_number(commit_message):
@@ -211,14 +223,14 @@ def format_uncategorized_entry(pr_number, title, labels, body):
     """Format an uncategorized entry with full context for AI sorting."""
     pr_url = f"https://github.com/XRPLF/rippled/pull/{pr_number}"
     parts = [
-        f"- **{title}**",
+        f"- **{title.strip()}**",
         f"  - PR: [#{pr_number}]({pr_url})",
     ]
     if labels:
         parts.append(f"  - Labels: {', '.join(labels)}")
     if body:
-        desc = body.split("\n\n")[0].strip()  # First paragraph
-        desc = re.sub(r"\s+", " ", desc)  # Collapse whitespace
+        # Collapse to single line to prevent markdown formatting conflicts
+        desc = re.sub(r"\s+", " ", body).strip()
         if desc:
             parts.append(f"  - Description: {desc}")
     return "\n".join(parts)
