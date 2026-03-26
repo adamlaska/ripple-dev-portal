@@ -14,7 +14,6 @@ Requires: gh CLI (authenticated)
 """
 
 import argparse
-import base64
 import json
 import re
 import subprocess
@@ -100,43 +99,17 @@ def run_gh_graphql(query):
 
 # --- Data fetching ---
 
-def fetch_version(ref):
-    """Fetch the version string from BuildInfo.cpp at the given ref."""
-    data = run_gh_rest(
-        f"repos/XRPLF/rippled/contents/src/libxrpl/protocol/BuildInfo.cpp?ref={ref}"
-    )
-    content = base64.b64decode(data["content"]).decode()
-    match = re.search(r'versionString\s*=\s*"([^"]+)"', content)
-    if not match:
-        print("Error: Could not find versionString in BuildInfo.cpp", file=sys.stderr)
-        sys.exit(1)
-    return match.group(1)
-
-
-def fetch_commits(from_ref, to_ref):
-    """Fetch all commits between two refs using the GitHub compare API."""
-    commits = []
-    page = 1
-    while True:
-        data = run_gh_rest(
-            f"repos/XRPLF/rippled/compare/{from_ref}...{to_ref}?per_page=250&page={page}"
-        )
-        batch = data.get("commits", [])
-        commits.extend(batch)
-        if len(batch) < 250:
-            break
-        page += 1
-    return commits
-
-
-def fetch_version_commit(ref):
-    """Fetch the commit that last modified BuildInfo.cpp at the given ref.
-    This is the version-setting commit, used for the git log block.
+def fetch_version_info(ref):
+    """Fetch version string and version-setting commit info in a single GraphQL call.
+    Returns (version_string, formatted_commit_block).
     """
     data = run_gh_graphql(f"""
     {{
         repository(owner: "XRPLF", name: "rippled") {{
-            object(expression: "{ref}") {{
+            file: object(expression: "{ref}:src/libxrpl/protocol/BuildInfo.cpp") {{
+                ... on Blob {{ text }}
+            }}
+            ref: object(expression: "{ref}") {{
                 ... on Commit {{
                     history(first: 1, path: "src/libxrpl/protocol/BuildInfo.cpp") {{
                         nodes {{
@@ -154,26 +127,51 @@ def fetch_version_commit(ref):
         }}
     }}
     """)
-    nodes = (data.get("data", {}).get("repository", {}).get("object") or {}).get("history", {}).get("nodes", [])
+    repo = data.get("data", {}).get("repository", {})
+
+    # Extract version string from BuildInfo.cpp
+    file_text = (repo.get("file") or {}).get("text", "")
+    match = re.search(r'versionString\s*=\s*"([^"]+)"', file_text)
+    if not match:
+        print("Warning: Could not find versionString in BuildInfo.cpp. Using placeholder.", file=sys.stderr)
+    version = match.group(1) if match else "TODO"
+
+    # Extract version commit info
+    nodes = (repo.get("ref") or {}).get("history", {}).get("nodes", [])
     if not nodes:
-        return "commit TODO\nAuthor: TODO\nDate:   TODO\n\n    Set version to TODO"
+        commit_block = "commit TODO\nAuthor: TODO\nDate:   TODO\n\n    Set version to TODO"
+    else:
+        commit = nodes[0]
+        raw_date = commit["author"]["date"]
+        try:
+            dt = datetime.fromisoformat(raw_date)
+            formatted_date = dt.strftime("%a %b %-d %H:%M:%S %Y %z")
+        except ValueError:
+            formatted_date = raw_date
 
-    commit = nodes[0]
+        name = commit["author"]["name"]
+        email = commit["author"]["email"]
+        sha = commit["oid"]
+        message = commit["message"].split("\n")[0]
+        commit_block = f"commit {sha}\nAuthor: {name} <{email}>\nDate:   {formatted_date}\n\n    {message}"
 
-    # Format date from ISO 8601 to git log style
-    raw_date = commit["author"]["date"]
-    try:
-        dt = datetime.fromisoformat(raw_date)
-        formatted_date = dt.strftime("%a %b %-d %H:%M:%S %Y %z")
-    except ValueError:
-        formatted_date = raw_date
+    return version, commit_block
 
-    name = commit["author"]["name"]
-    email = commit["author"]["email"]
-    sha = commit["oid"]
-    message = commit["message"].split("\n")[0]
 
-    return f"commit {sha}\nAuthor: {name} <{email}>\nDate:   {formatted_date}\n\n    {message}"
+def fetch_commits(from_ref, to_ref):
+    """Fetch all commits between two refs using the GitHub compare API."""
+    commits = []
+    page = 1
+    while True:
+        data = run_gh_rest(
+            f"repos/XRPLF/rippled/compare/{from_ref}...{to_ref}?per_page=250&page={page}"
+        )
+        batch = data.get("commits", [])
+        commits.extend(batch)
+        if len(batch) < 250:
+            break
+        page += 1
+    return commits
 
 
 def fetch_prs_graphql(pr_numbers):
@@ -376,7 +374,10 @@ For other platforms, please [build from source](https://github.com/XRPLF/rippled
 
     # Credits
     parts.append("\n\n## Credits\n")
-    parts.append("The following RippleX teams and GitHub users contributed to this release:\n")
+    if authors:
+        parts.append("The following RippleX teams and GitHub users contributed to this release:\n")
+    else:
+        parts.append("The following RippleX teams contributed to this release:\n")
     parts.append("- RippleX Engineering")
     parts.append("- RippleX Docs")
     parts.append("- RippleX Product")
@@ -407,8 +408,8 @@ def main():
 
     args.date = args.date or date.today().isoformat()
 
-    print(f"Fetching version from BuildInfo.cpp at {args.to_ref}...")
-    version = fetch_version(args.to_ref)
+    print(f"Fetching version info from {args.to_ref}...")
+    version, version_commit = fetch_version_info(args.to_ref)
     print(f"Version: {version}")
 
     year = args.date.split("-")[0]
@@ -417,9 +418,6 @@ def main():
     print(f"Fetching commits: {args.from_ref}...{args.to_ref}")
     commits = fetch_commits(args.from_ref, args.to_ref)
     print(f"Found {len(commits)} commits")
-
-    print(f"Fetching version commit info...")
-    version_commit = fetch_version_commit(args.to_ref)
 
     # Extract unique PR numbers and track authors
     pr_numbers = {}
