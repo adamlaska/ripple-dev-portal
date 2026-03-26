@@ -130,27 +130,35 @@ def fetch_commits(from_ref, to_ref):
 
 
 def fetch_version_commit(ref):
-    """Fetch the version-setting commit info via GraphQL for the git log block."""
+    """Fetch the commit that last modified BuildInfo.cpp at the given ref.
+    This is the version-setting commit, used for the git log block.
+    """
     data = run_gh_graphql(f"""
     {{
         repository(owner: "XRPLF", name: "rippled") {{
             object(expression: "{ref}") {{
                 ... on Commit {{
-                    oid
-                    message
-                    author {{
-                        name
-                        email
-                        date
+                    history(first: 1, path: "src/libxrpl/protocol/BuildInfo.cpp") {{
+                        nodes {{
+                            oid
+                            message
+                            author {{
+                                name
+                                email
+                                date
+                            }}
+                        }}
                     }}
                 }}
             }}
         }}
     }}
     """)
-    commit = data.get("data", {}).get("repository", {}).get("object")
-    if not commit:
+    nodes = (data.get("data", {}).get("repository", {}).get("object") or {}).get("history", {}).get("nodes", [])
+    if not nodes:
         return "commit TODO\nAuthor: TODO\nDate:   TODO\n\n    Set version to TODO"
+
+    commit = nodes[0]
 
     # Format date from ISO 8601 to git log style
     raw_date = commit["author"]["date"]
