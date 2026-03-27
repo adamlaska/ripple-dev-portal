@@ -21,19 +21,6 @@ import sys
 from datetime import date, datetime
 
 
-# Subsection headings for the changelog (empty until sorted)
-SECTIONS = [
-    "Amendments",
-    "Features",
-    "Breaking Changes",
-    "Bug Fixes",
-    "Refactors",
-    "Documentation",
-    "Testing",
-    "CI/Build",
-]
-
-
 # Emails to exclude from credits (Ripple employees not using @ripple.com).
 # Commits from @ripple.com addresses are already filtered automatically.
 EXCLUDED_EMAILS = {
@@ -98,8 +85,18 @@ def run_gh_graphql(query):
 
 
 def fetch_commit_files(sha):
-    """Fetch list of files changed in a commit via REST API."""
-    data = run_gh_rest(f"repos/XRPLF/rippled/commits/{sha}")
+    """Fetch list of files changed in a commit via REST API.
+    Returns empty list on failure instead of exiting.
+    """
+    result = subprocess.run(
+        ["gh", "api", f"repos/XRPLF/rippled/commits/{sha}"],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        print(f"  Warning: Could not fetch files for commit {sha[:7]}", file=sys.stderr)
+        return []
+    data = json.loads(result.stdout)
     return [f["filename"] for f in data.get("files", [])]
 
 
@@ -183,7 +180,7 @@ def fetch_commits(from_ref, to_ref):
 def fetch_prs_graphql(pr_numbers):
     """Fetch PR details in batches using GitHub GraphQL API.
     Falls back to issue lookup for numbers that aren't PRs.
-    Returns a dict of {number: {title, body, labels, type}}.
+    Returns a dict of {number: {title, body, labels, files, type}}.
     """
     results = {}
     missing = []
@@ -376,7 +373,11 @@ For other platforms, please [build from source](https://github.com/XRPLF/rippled
 """)
 
     # Empty subsection headings for manual/AI sorting
-    for section in SECTIONS:
+    sections = [
+        "Amendments", "Features", "Breaking Changes", "Bug Fixes",
+        "Refactors", "Documentation", "Testing", "CI/Build",
+    ]
+    for section in sections:
         parts.append(f"\n### {section}\n")
 
     # Uncategorized entries with full context
