@@ -234,7 +234,7 @@ def fetch_prs_graphql(pr_numbers):
 
     # Fetch missing numbers as issues
     if missing:
-        print(f"  Looking up {len(missing)} missing numbers as issues...")
+        print(f"  Looking up {len(missing)} missing PR numbers as Issues...")
         for i in range(0, len(missing), batch_size):
             batch = missing[i:i + batch_size]
 
@@ -285,7 +285,7 @@ def clean_pr_body(text):
     # Remove all markdown headings
     text = re.sub(r"^#{1,6} .+$", "", text, flags=re.MULTILINE)
     # Convert bare GitHub URLs to markdown links
-    text = re.sub(r"(?<!\()https://github\.com/XRPLF/rippled/(pull|issues)/(\d+)", r"[#\2](https://github.com/XRPLF/rippled/\1/\2)", text)
+    text = re.sub(r"(?<!\()https://github\.com/XRPLF/rippled/(pull|issues)/(\d+)(#[^\s)]*)?", r"[#\2](https://github.com/XRPLF/rippled/\1/\2\3)", text)
     # Convert remaining bare PR/issue references (#1234) to full GitHub links
     text = re.sub(r"(?<!\[)#(\d+)(?!\])", r"[#\1](https://github.com/XRPLF/rippled/pull/\1)", text)
     # Collapse multiple blank lines into one
@@ -305,6 +305,23 @@ def should_skip(title):
 
 
 # --- Formatting ---
+
+def format_commit_entry(sha, title, body="", files=None):
+    """Format an entry linked to a commit (no PR/Issue found)."""
+    short_sha = sha[:7]
+    url = f"https://github.com/XRPLF/rippled/commit/{sha}"
+    parts = [
+        f"- **{title.strip()}**",
+        f"  - Link: [{short_sha}]({url})",
+    ]
+    if files:
+        parts.append(f"  - Files: {', '.join(files)}")
+    if body:
+        desc = re.sub(r"\s+", " ", clean_pr_body(body)).strip()
+        if desc:
+            parts.append(f"  - Description: {desc}")
+    return "\n".join(parts)
+
 
 def format_uncategorized_entry(pr_number, title, labels, body, files=None, link_type="pull"):
     """Format an uncategorized entry with full context for AI sorting."""
@@ -434,12 +451,15 @@ def main():
 
     # Extract unique PR (in rare cases Issues) numbers and track authors
     pr_numbers = {}
-    pr_shas = {}      # PR/issue number → commit SHA (for file lookups on Issues)
+    pr_shas = {}       # PR/issue number → commit SHA (for file lookups on Issues)
+    pr_bodies = {}     # PR/issue number → commit body (for fallback descriptions)
     orphan_commits = []  # Commits with no PR/Issues link
     authors = set()
 
     for commit in commits:
-        message = commit["commit"]["message"].split("\n")[0]
+        full_message = commit["commit"]["message"]
+        message = full_message.split("\n")[0]
+        body = "\n".join(full_message.split("\n")[1:]).strip()
         sha = commit["sha"]
         author = commit["commit"]["author"]["name"]
         email = commit["commit"]["author"].get("email", "")
@@ -459,15 +479,14 @@ def main():
         if pr_number:
             pr_numbers[pr_number] = message
             pr_shas[pr_number] = sha
+            pr_bodies[pr_number] = body
         else:
-            full_message = commit["commit"]["message"]
-            body = "\n".join(full_message.split("\n")[1:]).strip()
             orphan_commits.append({"sha": sha, "message": message, "body": body})
 
     print(f"Unique PRs after filtering: {len(pr_numbers)}")
     if orphan_commits:
         print(f"Commits without PR or Issue linked: {len(orphan_commits)}")
-    print(f"Fetching PR details via GraphQL...")
+    print(f"Building changelog entries...")
 
     # Fetch all PR details in batches via GraphQL
     pr_details = fetch_prs_graphql(list(pr_numbers.keys()))
@@ -476,37 +495,36 @@ def main():
     entries = []
     for pr_number, commit_msg in pr_numbers.items():
         pr_data = pr_details.get(pr_number)
-        title = pr_data["title"] if pr_data else commit_msg
-        body = pr_data.get("body", "") if pr_data else ""
-        labels = pr_data.get("labels", []) if pr_data else []
-        files = pr_data.get("files", []) if pr_data else []
-        link_type = pr_data.get("type", "pull") if pr_data else "pull"
 
-        # For Issues (no files from GraphQL), fetch files from the commit
-        if not files and pr_number in pr_shas:
-            files = fetch_commit_files(pr_shas[pr_number])
+        if pr_data:
+            title = pr_data["title"]
+            body = pr_data.get("body", "")
+            labels = pr_data.get("labels", [])
+            files = pr_data.get("files", [])
+            link_type = pr_data.get("type", "pull")
 
-        entry = format_uncategorized_entry(pr_number, title, labels, body, files, link_type)
+            # For issues (no files from GraphQL), fetch files from the commit
+            if not files and pr_number in pr_shas:
+                print(f"  Building entry for Issue #{pr_number} via commit...")
+                files = fetch_commit_files(pr_shas[pr_number])
+
+            entry = format_uncategorized_entry(pr_number, title, labels, body, files, link_type)
+        else:
+            # Fallback to commit lookup for invalid PR and Issues link
+            sha = pr_shas[pr_number]
+            print(f"  #{pr_number} not found as PR or Issue, building from commit {sha[:7]}...")
+            files = fetch_commit_files(sha)
+            entry = format_commit_entry(sha, commit_msg, pr_bodies[pr_number], files)
+
         entries.append(entry)
 
     # Build entries for orphan commits (no PR/Issue linked)
     for orphan in orphan_commits:
         sha = orphan["sha"]
-        message = orphan["message"]
-        body = orphan["body"]
+        print(f"  Building commit-only entry for {sha[:7]}...")
         files = fetch_commit_files(sha)
-        short_sha = sha[:7]
-        url = f"https://github.com/XRPLF/rippled/commit/{sha}"
-        parts = [
-            f"- **{message.strip()}**",
-            f"  - Link: [{short_sha}]({url})",
-        ]
-        if files:
-            parts.append(f"  - Files: {', '.join(files)}")
-        if body:
-            desc = re.sub(r"\s+", " ", clean_pr_body(body)).strip()
-            parts.append(f"  - Description: {desc}")
-        entries.append("\n".join(parts))
+        entry = format_commit_entry(sha, orphan["message"], orphan["body"], files)
+        entries.append(entry)
 
     # Generate markdown
     markdown = generate_markdown(version, args.date, entries, authors, version_commit)
