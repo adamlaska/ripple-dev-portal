@@ -97,6 +97,12 @@ def run_gh_graphql(query):
         sys.exit(1)
 
 
+def fetch_commit_files(sha):
+    """Fetch list of files changed in a commit via REST API."""
+    data = run_gh_rest(f"repos/XRPLF/rippled/commits/{sha}")
+    return [f["filename"] for f in data.get("files", [])]
+
+
 # --- Data fetching ---
 
 def fetch_version_info(ref):
@@ -197,6 +203,9 @@ def fetch_prs_graphql(pr_numbers):
                     labels(first: 10) {{
                         nodes {{ name }}
                     }}
+                    files(first: 100) {{
+                        nodes {{ path }}
+                    }}
                 }}
             """)
 
@@ -218,6 +227,7 @@ def fetch_prs_graphql(pr_numbers):
                     "title": pr_data["title"],
                     "body": clean_pr_body(pr_data.get("body") or ""),
                     "labels": [l["name"] for l in pr_data.get("labels", {}).get("nodes", [])],
+                    "files": [f["path"] for f in pr_data.get("files", {}).get("nodes", [])],
                     "type": "pull",
                 }
             else:
@@ -294,12 +304,12 @@ def extract_pr_number(commit_message):
 
 def should_skip(title):
     """Check if a commit should be skipped."""
-    return any(pattern.match(title) for pattern in SKIP_PATTERNS)
+    return any(pattern.search(title) for pattern in SKIP_PATTERNS)
 
 
 # --- Formatting ---
 
-def format_uncategorized_entry(pr_number, title, labels, body, link_type="pull"):
+def format_uncategorized_entry(pr_number, title, labels, body, files=None, link_type="pull"):
     """Format an uncategorized entry with full context for AI sorting."""
     url = f"https://github.com/XRPLF/rippled/{link_type}/{pr_number}"
     parts = [
@@ -308,6 +318,8 @@ def format_uncategorized_entry(pr_number, title, labels, body, link_type="pull")
     ]
     if labels:
         parts.append(f"  - Labels: {', '.join(labels)}")
+    if files:
+        parts.append(f"  - Files: {', '.join(files)}")
     if body:
         # Collapse to single line to prevent markdown formatting conflicts
         desc = re.sub(r"\s+", " ", body).strip()
@@ -419,12 +431,15 @@ def main():
     commits = fetch_commits(args.from_ref, args.to_ref)
     print(f"Found {len(commits)} commits")
 
-    # Extract unique PR numbers and track authors
+    # Extract unique PR (in rare cases Issues) numbers and track authors
     pr_numbers = {}
+    pr_shas = {}      # PR/issue number → commit SHA (for file lookups on Issues)
+    orphan_commits = []  # Commits with no PR/Issues link
     authors = set()
 
     for commit in commits:
         message = commit["commit"]["message"].split("\n")[0]
+        sha = commit["sha"]
         author = commit["commit"]["author"]["name"]
         email = commit["commit"]["author"].get("email", "")
 
@@ -436,33 +451,61 @@ def main():
             else:
                 authors.add(author)
 
+        if should_skip(message):
+            continue
+
         pr_number = extract_pr_number(message)
         if pr_number:
             pr_numbers[pr_number] = message
+            pr_shas[pr_number] = sha
+        else:
+            full_message = commit["commit"]["message"]
+            body = "\n".join(full_message.split("\n")[1:]).strip()
+            orphan_commits.append({"sha": sha, "message": message, "body": body})
 
-    # Filter out skippable commits
-    filtered_prs = {
-        num: msg for num, msg in pr_numbers.items()
-        if not should_skip(msg)
-    }
-
-    print(f"Unique PRs after filtering: {len(filtered_prs)}")
+    print(f"Unique PRs after filtering: {len(pr_numbers)}")
+    if orphan_commits:
+        print(f"Commits without PR or Issue linked: {len(orphan_commits)}")
     print(f"Fetching PR details via GraphQL...")
 
     # Fetch all PR details in batches via GraphQL
-    pr_details = fetch_prs_graphql(list(filtered_prs.keys()))
+    pr_details = fetch_prs_graphql(list(pr_numbers.keys()))
 
-    # Build uncategorized entries with full context
+    # Build entries for PR/Issue-linked commits
     entries = []
-    for pr_number, commit_msg in filtered_prs.items():
+    for pr_number, commit_msg in pr_numbers.items():
         pr_data = pr_details.get(pr_number)
         title = pr_data["title"] if pr_data else commit_msg
         body = pr_data.get("body", "") if pr_data else ""
         labels = pr_data.get("labels", []) if pr_data else []
+        files = pr_data.get("files", []) if pr_data else []
         link_type = pr_data.get("type", "pull") if pr_data else "pull"
 
-        entry = format_uncategorized_entry(pr_number, title, labels, body, link_type)
+        # For Issues (no files from GraphQL), fetch files from the commit
+        if not files and pr_number in pr_shas:
+            files = fetch_commit_files(pr_shas[pr_number])
+
+        entry = format_uncategorized_entry(pr_number, title, labels, body, files, link_type)
         entries.append(entry)
+
+    # Build entries for orphan commits (no PR/Issue linked)
+    for orphan in orphan_commits:
+        sha = orphan["sha"]
+        message = orphan["message"]
+        body = orphan["body"]
+        files = fetch_commit_files(sha)
+        short_sha = sha[:7]
+        url = f"https://github.com/XRPLF/rippled/commit/{sha}"
+        parts = [
+            f"- **{message.strip()}**",
+            f"  - Link: [{short_sha}]({url})",
+        ]
+        if files:
+            parts.append(f"  - Files: {', '.join(files)}")
+        if body:
+            desc = re.sub(r"\s+", " ", clean_pr_body(body)).strip()
+            parts.append(f"  - Description: {desc}")
+        entries.append("\n".join(parts))
 
     # Generate markdown
     markdown = generate_markdown(version, args.date, entries, authors, version_commit)
