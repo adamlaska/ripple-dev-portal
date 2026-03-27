@@ -28,7 +28,7 @@ To learn about MPTs in general, go to the **Concept** page. For developer-focuse
 {% card-grid %}
 
 {% xrpl-card title="Concept: Multi‑Purpose Tokens" body="Read the concept documentation to learn more about Multi-Purpose Tokens." href="docs/concepts/tokens/fungible-tokens/multi-purpose-tokens/" /%}
-{% xrpl-card title="Tutorial: Issue a Multi‑Purpose Token" body="Step‑by‑step, hands‑on tutorial to issue an MPT using the XRP Ledger SDKs." href="docs/tutorials/issue-a-multi-purpose-token/" /%}
+{% xrpl-card title="Tutorial: Issue a Multi‑Purpose Token" body="Step‑by‑step, hands‑on tutorial to issue an MPT using the XRP Ledger SDKs." href="docs/tutorials/tokens/mpts/issue-a-multi-purpose-token" /%}
 {% xrpl-card title="MPT Generator" body="Download the MPT Generator and learn how to create an asset-backed Treasury bill." href="#mpt-generator"/%}
 {% /card-grid %}
 
