@@ -304,6 +304,11 @@ def should_skip(title):
     return any(pattern.search(title) for pattern in SKIP_PATTERNS)
 
 
+def is_amendment(files):
+    """Check if any file in the list is features.macro."""
+    return any("features.macro" in f for f in files)
+
+
 # --- Formatting ---
 
 def format_commit_entry(sha, title, body="", files=None):
@@ -342,7 +347,7 @@ def format_uncategorized_entry(pr_number, title, labels, body, files=None, link_
     return "\n".join(parts)
 
 
-def generate_markdown(version, release_date, entries, authors, version_commit):
+def generate_markdown(version, release_date, amendment_entries, entries, authors, version_commit):
     """Generate the full markdown release notes."""
     year = release_date.split("-")[0]
     parts = []
@@ -389,9 +394,14 @@ For other platforms, please [build from source](https://github.com/XRPLF/rippled
 ## Full Changelog
 """)
 
-    # Empty subsection headings for manual/AI sorting
+    # Amendments section (auto-sorted by features.macro detection)
+    parts.append("\n### Amendments\n")
+    for entry in amendment_entries:
+        parts.append(entry)
+
+    # Remaining empty subsection headings for manual/AI sorting
     sections = [
-        "Amendments", "Features", "Breaking Changes", "Bug Fixes",
+        "Features", "Breaking Changes", "Bug Fixes",
         "Refactors", "Documentation", "Testing", "CI/Build",
     ]
     for section in sections:
@@ -491,7 +501,8 @@ def main():
     # Fetch all PR details in batches via GraphQL
     pr_details = fetch_prs_graphql(list(pr_numbers.keys()))
 
-    # Build entries for PR/Issue-linked commits
+    # Build entries, sorting amendments automatically
+    amendment_entries = []
     entries = []
     for pr_number, commit_msg in pr_numbers.items():
         pr_data = pr_details.get(pr_number)
@@ -508,26 +519,39 @@ def main():
                 print(f"  Building entry for Issue #{pr_number} via commit...")
                 files = fetch_commit_files(pr_shas[pr_number])
 
-            entry = format_uncategorized_entry(pr_number, title, labels, body, files, link_type)
+            # Auto-sort: entries touching features.macro go to Amendments
+            if is_amendment(files):
+                entry = format_uncategorized_entry(pr_number, title, labels, body, link_type=link_type)
+                amendment_entries.append(entry)
+            else:
+                entry = format_uncategorized_entry(pr_number, title, labels, body, files, link_type)
+                entries.append(entry)
         else:
             # Fallback to commit lookup for invalid PR and Issues link
             sha = pr_shas[pr_number]
             print(f"  #{pr_number} not found as PR or Issue, building from commit {sha[:7]}...")
             files = fetch_commit_files(sha)
-            entry = format_commit_entry(sha, commit_msg, pr_bodies[pr_number], files)
-
-        entries.append(entry)
+            if is_amendment(files):
+                entry = format_commit_entry(sha, commit_msg, pr_bodies[pr_number])
+                amendment_entries.append(entry)
+            else:
+                entry = format_commit_entry(sha, commit_msg, pr_bodies[pr_number], files)
+                entries.append(entry)
 
     # Build entries for orphan commits (no PR/Issue linked)
     for orphan in orphan_commits:
         sha = orphan["sha"]
         print(f"  Building commit-only entry for {sha[:7]}...")
         files = fetch_commit_files(sha)
-        entry = format_commit_entry(sha, orphan["message"], orphan["body"], files)
-        entries.append(entry)
+        if is_amendment(files):
+            entry = format_commit_entry(sha, orphan["message"], orphan["body"])
+            amendment_entries.append(entry)
+        else:
+            entry = format_commit_entry(sha, orphan["message"], orphan["body"], files)
+            entries.append(entry)
 
     # Generate markdown
-    markdown = generate_markdown(version, args.date, entries, authors, version_commit)
+    markdown = generate_markdown(version, args.date, amendment_entries, entries, authors, version_commit)
 
     # Write output
     with open(output_path, "w") as f:
