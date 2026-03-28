@@ -505,6 +505,11 @@ def main():
     args = parser.parse_args()
 
     args.date = args.date or date.today().isoformat()
+    try:
+        date.fromisoformat(args.date)
+    except ValueError:
+        print(f"Error: Invalid date format '{args.date}'. Use YYYY-MM-DD.", file=sys.stderr)
+        sys.exit(1)
 
     print(f"Fetching version info from {args.to_ref}...")
     version, version_commit = fetch_version_info(args.to_ref)
@@ -641,10 +646,21 @@ def main():
             # Find the year group and insert at the top of its items
             year_marker = f"    - group: '{year}'"
             if year_marker not in sidebar_content:
-                # Year group doesn't exist — create it after the Blog group items line
-                insert_after = "  items:\n"
+                # Year group doesn't exist — find the right chronological position
                 new_group = f"    - group: '{year}'\n      expanded: false\n      items:\n{new_entry}\n"
-                sidebar_content = sidebar_content.replace(insert_after, insert_after + new_group, 1)
+                # Find all existing year groups and insert before the first one with a smaller year
+                year_groups = list(re.finditer(r"    - group: '(\d{4})'", sidebar_content))
+                insert_pos = None
+                for match in year_groups:
+                    existing_year = match.group(1)
+                    if int(year) > int(existing_year):
+                        insert_pos = match.start()
+                        break
+                if insert_pos is not None:
+                    sidebar_content = sidebar_content[:insert_pos] + new_group + sidebar_content[insert_pos:]
+                else:
+                    # New year is older than all existing — append at the end
+                    sidebar_content = sidebar_content.rstrip() + "\n" + new_group
             else:
                 # Insert after the year group's "items:" line
                 year_idx = sidebar_content.index(year_marker)
