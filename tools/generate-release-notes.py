@@ -16,6 +16,7 @@ Requires: gh CLI (authenticated)
 import argparse
 import base64
 import json
+import os
 import re
 import subprocess
 import sys
@@ -627,6 +628,7 @@ def main():
     markdown = generate_markdown(version, args.date, amendment_diff, amendment_entries, entries, authors, version_commit)
 
     # Write output
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
     with open(output_path, "w") as f:
         f.write(markdown)
 
@@ -634,7 +636,9 @@ def main():
 
     # Update blog/sidebars.yaml
     sidebars_path = "blog/sidebars.yaml"
-    relative_path = f"{year}/rippled-{version}.md"
+    # Derive sidebar path and year from actual output path
+    relative_path = output_path.removeprefix("blog/")
+    sidebar_year = relative_path.split("/")[0]
     new_entry = f"        - page: {relative_path}"
     try:
         with open(sidebars_path, "r") as f:
@@ -644,16 +648,16 @@ def main():
             print(f"{sidebars_path} already contains {relative_path}")
         else:
             # Find the year group and insert at the top of its items
-            year_marker = f"    - group: '{year}'"
+            year_marker = f"    - group: '{sidebar_year}'"
             if year_marker not in sidebar_content:
                 # Year group doesn't exist — find the right chronological position
-                new_group = f"    - group: '{year}'\n      expanded: false\n      items:\n{new_entry}\n"
+                new_group = f"    - group: '{sidebar_year}'\n      expanded: false\n      items:\n{new_entry}\n"
                 # Find all existing year groups and insert before the first one with a smaller year
                 year_groups = list(re.finditer(r"    - group: '(\d{4})'", sidebar_content))
                 insert_pos = None
                 for match in year_groups:
                     existing_year = match.group(1)
-                    if int(year) > int(existing_year):
+                    if int(sidebar_year) > int(existing_year):
                         insert_pos = match.start()
                         break
                 if insert_pos is not None:
