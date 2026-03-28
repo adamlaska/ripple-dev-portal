@@ -3,12 +3,14 @@ name: generate-release-notes
 description: Generate and sort rippled release notes from GitHub commit history
 argument-hint: --from <ref> --to <ref> [--date YYYY-MM-DD]
 disable-model-invocation: true
-allowed-tools: Bash, Read, Edit, Write, Grep, Glob
+allowed-tools: Bash, Read, Edit, Grep, Glob
 ---
 
 # Generate rippled Release Notes
 
 This skill generates a draft release notes blog post for a new rippled version, then sorts the entries into the correct sections.
+
+**Always use in-place edits (Edit tool) when modifying the output file. Never rewrite it entirely.** This preserves sections like Credits and Bug Bounties that are not part of the sorting workflow.
 
 ## Step 1: Generate the raw release notes
 
