@@ -179,13 +179,17 @@ def fetch_commits(from_ref, to_ref):
 
 
 def parse_features_macro(text):
-    """Parse features.macro into {amendment: status_string} dict."""
+    """Parse features.macro into {amendment_name: status_string} dict."""
     results = {}
     for match in re.finditer(
-        r'XRPL_(?:FEATURE|FIX)\s*\(\s*(\w+)\s*,\s*Supported::(\w+)\s*,\s*VoteBehavior::(\w+)', text):
-        results[match.group(1)] = f"{match.group(2)}, {match.group(3)}"
-    for match in re.finditer(r'XRPL_RETIRE(?:_(?:FEATURE|FIX))?\s*\(\s*(\w+)\s*\)', text):
-        results[match.group(1)] = "retired"
+        r'XRPL_(FEATURE|FIX)\s*\(\s*(\w+)\s*,\s*Supported::(\w+)\s*,\s*VoteBehavior::(\w+)', text):
+        macro_type, name, supported, vote = match.groups()
+        key = f"fix{name}" if macro_type == "FIX" else name
+        results[key] = f"{supported}, {vote}"
+    for match in re.finditer(r'XRPL_RETIRE(?:_(FEATURE|FIX))?\s*\(\s*(\w+)\s*\)', text):
+        macro_type, name = match.groups()
+        key = f"fix{name}" if macro_type == "FIX" else name
+        results[key] = "retired"
     return results
 
 
@@ -443,7 +447,7 @@ For other platforms, please [build from source](https://github.com/XRPLF/rippled
     if amendment_diff:
         included = [name for name, include in sorted(amendment_diff.items()) if include]
         excluded = [name for name, include in sorted(amendment_diff.items()) if not include]
-        comment_lines = ["<!-- Add or remove amendment entries using info below. Remove this comment after sorting."]
+        comment_lines = ["<!-- Include or remove amendment entries using this info. Remove this comment after sorting."]
         if included:
             comment_lines.append(f"Include these amendments: {', '.join(included)}")
         if excluded:
