@@ -627,6 +627,37 @@ def main():
 
     print(f"\nRelease notes written to: {output_path}")
 
+    # Update blog/sidebars.yaml
+    sidebars_path = "blog/sidebars.yaml"
+    relative_path = f"{year}/rippled-{version}.md"
+    new_entry = f"        - page: {relative_path}"
+    try:
+        with open(sidebars_path, "r") as f:
+            sidebar_content = f.read()
+
+        if relative_path in sidebar_content:
+            print(f"{sidebars_path} already contains {relative_path}")
+        else:
+            # Find the year group and insert at the top of its items
+            year_marker = f"    - group: '{year}'"
+            if year_marker not in sidebar_content:
+                # Year group doesn't exist — create it after the Blog group items line
+                insert_after = "  items:\n"
+                new_group = f"    - group: '{year}'\n      expanded: false\n      items:\n{new_entry}\n"
+                sidebar_content = sidebar_content.replace(insert_after, insert_after + new_group, 1)
+            else:
+                # Insert after the year group's "items:" line
+                year_idx = sidebar_content.index(year_marker)
+                items_idx = sidebar_content.index("      items:", year_idx)
+                insert_pos = items_idx + len("      items:\n")
+                sidebar_content = sidebar_content[:insert_pos] + new_entry + "\n" + sidebar_content[insert_pos:]
+
+            with open(sidebars_path, "w") as f:
+                f.write(sidebar_content)
+            print(f"Added {relative_path} to {sidebars_path}")
+    except FileNotFoundError:
+        print(f"Warning: {sidebars_path} not found, skipping sidebar update", file=sys.stderr)
+
 
 if __name__ == "__main__":
     main()
