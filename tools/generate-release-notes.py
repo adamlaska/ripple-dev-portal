@@ -14,6 +14,7 @@ Requires: gh CLI (authenticated)
 """
 
 import argparse
+import base64
 import json
 import re
 import subprocess
@@ -175,6 +176,49 @@ def fetch_commits(from_ref, to_ref):
             break
         page += 1
     return commits
+
+
+def parse_features_macro(text):
+    """Parse features.macro into {amendment: status_string} dict."""
+    results = {}
+    for match in re.finditer(
+        r'XRPL_(?:FEATURE|FIX)\s*\(\s*(\w+)\s*,\s*Supported::(\w+)\s*,\s*VoteBehavior::(\w+)', text):
+        results[match.group(1)] = f"{match.group(2)}, {match.group(3)}"
+    for match in re.finditer(r'XRPL_RETIRE(?:_(?:FEATURE|FIX))?\s*\(\s*(\w+)\s*\)', text):
+        results[match.group(1)] = "retired"
+    return results
+
+
+def fetch_amendment_diff(from_ref, to_ref):
+    """Compare features.macro between two refs to find amendment changes.
+    Returns a dict of {name: True/False} to determine amendment inclusion.
+    """
+    macro_path = "repos/XRPLF/rippled/contents/include/xrpl/protocol/detail/features.macro"
+
+    from_data = run_gh_rest(f"{macro_path}?ref={from_ref}")
+    from_text = base64.b64decode(from_data["content"]).decode()
+    from_amendments = parse_features_macro(from_text)
+
+    to_data = run_gh_rest(f"{macro_path}?ref={to_ref}")
+    to_text = base64.b64decode(to_data["content"]).decode()
+    to_amendments = parse_features_macro(to_text)
+
+    changes = {}
+    for name, to_status in to_amendments.items():
+        if name not in from_amendments:
+            # New amendment — include only if Supported::yes
+            changes[name] = to_status.startswith("yes")
+        elif from_amendments[name] != to_status:
+            # Include if either old or new status involves yes (voting-ready)
+            from_status = from_amendments[name]
+            changes[name] = from_status.startswith("yes") or to_status.startswith("yes")
+
+    # Removed amendments — include only if they were Supported::yes
+    for name in from_amendments:
+        if name not in to_amendments:
+            changes[name] = from_amendments[name].startswith("yes")
+
+    return changes
 
 
 def fetch_prs_graphql(pr_numbers):
@@ -347,7 +391,7 @@ def format_uncategorized_entry(pr_number, title, labels, body, files=None, link_
     return "\n".join(parts)
 
 
-def generate_markdown(version, release_date, amendment_entries, entries, authors, version_commit):
+def generate_markdown(version, release_date, amendment_diff, amendment_entries, entries, authors, version_commit):
     """Generate the full markdown release notes."""
     year = release_date.split("-")[0]
     parts = []
@@ -394,8 +438,18 @@ For other platforms, please [build from source](https://github.com/XRPLF/rippled
 ## Full Changelog
 """)
 
-    # Amendments section (auto-sorted by features.macro detection)
+    # Amendments section (auto-sorted by features.macro detection with diff guidance for AI)
     parts.append("\n### Amendments\n")
+    if amendment_diff:
+        included = [name for name, include in sorted(amendment_diff.items()) if include]
+        excluded = [name for name, include in sorted(amendment_diff.items()) if not include]
+        comment_lines = ["<!-- Add or remove amendment entries using info below. Remove this comment after sorting."]
+        if included:
+            comment_lines.append(f"Include these amendments: {', '.join(included)}")
+        if excluded:
+            comment_lines.append(f"Exclude these amendments: {', '.join(excluded)}")
+        comment_lines.append("-->")
+        parts.append("\n".join(comment_lines) + "\n")
     for entry in amendment_entries:
         parts.append(entry)
 
@@ -496,6 +550,16 @@ def main():
     print(f"Unique PRs after filtering: {len(pr_numbers)}")
     if orphan_commits:
         print(f"Commits without PR or Issue linked: {len(orphan_commits)}")
+    # Fetch amendment diff between refs
+    print(f"Comparing features.macro between {args.from_ref} and {args.to_ref}...")
+    amendment_diff = fetch_amendment_diff(args.from_ref, args.to_ref)
+    if amendment_diff:
+        for name, include in sorted(amendment_diff.items()):
+            status = "include" if include else "exclude"
+            print(f"  Amendment {name}: {status}")
+    else:
+        print("  No amendment changes detected")
+
     print(f"Building changelog entries...")
 
     # Fetch all PR details in batches via GraphQL
@@ -519,8 +583,8 @@ def main():
                 print(f"  Building entry for Issue #{pr_number} via commit...")
                 files = fetch_commit_files(pr_shas[pr_number])
 
-            # Auto-sort: entries touching features.macro go to Amendments
-            if is_amendment(files):
+            if is_amendment(files) and amendment_diff:
+                # Amendment entry — add to amendments section (AI will sort further)
                 entry = format_uncategorized_entry(pr_number, title, labels, body, link_type=link_type)
                 amendment_entries.append(entry)
             else:
@@ -531,7 +595,7 @@ def main():
             sha = pr_shas[pr_number]
             print(f"  #{pr_number} not found as PR or Issue, building from commit {sha[:7]}...")
             files = fetch_commit_files(sha)
-            if is_amendment(files):
+            if is_amendment(files) and amendment_diff:
                 entry = format_commit_entry(sha, commit_msg, pr_bodies[pr_number])
                 amendment_entries.append(entry)
             else:
@@ -543,7 +607,7 @@ def main():
         sha = orphan["sha"]
         print(f"  Building commit-only entry for {sha[:7]}...")
         files = fetch_commit_files(sha)
-        if is_amendment(files):
+        if is_amendment(files) and amendment_diff:
             entry = format_commit_entry(sha, orphan["message"], orphan["body"])
             amendment_entries.append(entry)
         else:
@@ -551,7 +615,7 @@ def main():
             entries.append(entry)
 
     # Generate markdown
-    markdown = generate_markdown(version, args.date, amendment_entries, entries, authors, version_commit)
+    markdown = generate_markdown(version, args.date, amendment_diff, amendment_entries, entries, authors, version_commit)
 
     # Write output
     with open(output_path, "w") as f:
