@@ -730,12 +730,22 @@ const CommunityPage: React.FC = () => {
           <tbody>
             <tr>
               <td className="td-img">
+              <a 
+                href="https://discord.gg/xrpl" 
+                target="_blank"
+              >
                 <img className="discord-icon" alt="discord icon" />
+                </a>
               </td>
               <td>
-                {translate(
-                  "Join the XRPL Discord to connect and network with builders, validators, and cryptocurrency enthusiasts."
-                )}
+                <a 
+                  href="https://discord.gg/xrpl" 
+                  target="_blank"
+                >
+                   {translate(
+                    "Join the XRPL Discord to connect and network with builders, validators, and cryptocurrency enthusiasts."
+                  )}
+                </a>
               </td>
               <td>
                 <a
@@ -749,12 +759,22 @@ const CommunityPage: React.FC = () => {
             </tr>
             <tr>
               <td className="td-img">
-                <img className="twitter-icon" alt="twitter icon" />
+                <a 
+                  href="https://x.com/RippleXDev" 
+                  target="_blank"
+                >
+                  <img className="twitter-icon" alt="twitter icon" />
+                </a>
               </td>
               <td>
-                {translate(
-                  "Follow @RippleXDev on X for the latest updates on the XRP Ledger ecosystem."
-                )}
+                <a 
+                  href="https://x.com/RippleXDev" 
+                  target="_blank"
+                >
+                  {translate(
+                    "Follow @RippleXDev on X for the latest updates on the XRP Ledger ecosystem."
+                  )}
+                </a>
               </td>
               <td>
                 <a
@@ -768,12 +788,22 @@ const CommunityPage: React.FC = () => {
             </tr>
             <tr>
               <td className="td-img">
-                <img className="youtube-icon" alt="youtube icon" />
+                <a 
+                  href="https://youtube.com/playlist?list=PLl-QsmXvjodqxEjtUqEv3u2o2Zd6zqkNA&feature=shared" 
+                  target="_blank"
+                >
+                  <img className="youtube-icon" alt="youtube icon" />
+                </a>
               </td>
               <td>
-                {translate(
-                  "APEX 2025: View keynote sessions from the Apex 2025 where developers, entrepreneurs, and industry leaders come together to learn, build, and celebrate all things XRP Ledger."
-                )}
+                <a
+                  href="https://youtube.com/playlist?list=PLl-QsmXvjodqxEjtUqEv3u2o2Zd6zqkNA&feature=shared"
+                  target="_blank"
+                >
+                  {translate(
+                    "APEX 2025: View keynote sessions from the Apex 2025 where developers, entrepreneurs, and industry leaders come together to learn, build, and celebrate all things XRP Ledger."
+                  )}
+                </a>
               </td>
               <td>
                 <a
@@ -787,12 +817,22 @@ const CommunityPage: React.FC = () => {
             </tr>
             <tr className="final-tr">
               <td className="td-img">
+                <a
+                href="https://learn.xrpl.org/react-3d-game/"
+                target="_blank"
+                >
                 <img className="xrpl-icon" alt="xrpl icon" />
+              </a>
               </td>
               <td>
+                <a
+                  href="https://learn.xrpl.org/react-3d-game/"
+                  target="_blank"
+                >
                 {translate(
                   "Explore DeFi-Island: A 3D open-source world on the XRPL testnet. Chat with residents, complete quests, and dive into this React.js-powered experience—all in your web browser."
                 )}
+                </a>
               </td>
               <td>
                 <a
