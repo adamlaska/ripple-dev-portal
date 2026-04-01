@@ -103,7 +103,7 @@ Once you have the incremental reserve value, multiply that by the number of obje
 
 ### 5. Calculate total reserve
 
-Use the following formula to calculate an address's total reserve requirement: 
+Use the following formula to calculate an account's total reserve requirement: 
 
 `total reserve = reserve_base_xrp + (OwnerCount × reserve_inc_xrp)`
 
