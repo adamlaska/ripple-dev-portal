@@ -2,15 +2,13 @@
 name: generate-release-notes
 description: Generate and sort rippled release notes from GitHub commit history
 argument-hint: --from <ref> --to <ref> [--date YYYY-MM-DD]
-disable-model-invocation: true
 allowed-tools: Bash, Read, Edit, Grep, Glob
+effort: max
 ---
 
 # Generate rippled Release Notes
 
 This skill generates a draft release notes blog post for a new rippled version, then sorts the entries into the correct sections.
-
-**Always use in-place edits (Edit tool) when modifying the output file. Never rewrite it entirely.** This preserves sections like Credits and Bug Bounties that are not part of the sorting workflow.
 
 ## Step 1: Generate the raw release notes
 
@@ -29,6 +27,12 @@ The script will:
 - Compare `features.macro` between refs to identify amendment changes
 - Auto-sort amendment entries into the Amendments section
 - Output all other entries as unsorted with full context
+
+## Important: Execution constraints
+
+- **Do NOT write scripts** to sort or process the file. Use the Edit tool to make changes directly.
+- **Do NOT chunk or break into subtasks**. Read the entire generated file in one pass — it is well within context limits. Do not create todo lists to track individual entries.
+- **Single pass context**: All categorization decisions must consider the full list of entries at once, not section by section. This ensures consistent sorting and avoids duplicates.
 
 ## Step 2: Review the generated file
 
@@ -60,6 +64,7 @@ Move each unsorted entry into the appropriate subsection. Use these signals to c
 
 **Description content** (when other signals are ambiguous):
 - Read the PR description to understand the change's purpose
+- PRs that change API behavior, remove features, or have "Breaking change" checked in their description → **Breaking Changes**
 
 ## Step 4: Reformat sorted entries
 
@@ -72,8 +77,9 @@ After sorting, reformat each entry to match the release notes style:
 
 Additional amendment guidance:
 - You can use slightly more detail for amendment descriptions, since they are the most important. Use present tense.
-- Use the HTML comment in the Amendments section to decide which entries to keep or remove.
-- There should only be one entry per amendment. If you decide to include multiple entries that touch the same amendment, merge them into one.
+- Use the HTML comment in the Amendments section to decide which entries to keep or remove. If an entry isn't on this list at all, remove it.
+- There should only be one entry per amendment. If there are multiple entries that touch the same amendment, merge them into one, prioritizing the one that describes the actual amendment.
+- Some amendment entries may not be sorted into the Amendment section. If you find one outside this section, move it into the Amendment section and apply the rules above to it.
 
 **Feature and Breaking Change entries** should follow this format:
 ```markdown
@@ -85,15 +91,15 @@ Additional feature and breaking change guidance:
 
 **All other entries** should follow this format:
 ```markdown
-- The title of the entry. ([#1234](https://github.com/XRPLF/rippled/pull/1234))
+- The PR title of the entry. ([#1234](https://github.com/XRPLF/rippled/pull/1234))
 ```
 
 Additional guidance for all other entries:
-- Minimally process the title of the entry. Fix basic capitalization and punctuation. Use past tense.
+- Copy the PR title as-is. Only fix capitalization, remove conventional commit prefixes (fix:, feat:, ci:, refactor:, docs:, test:, chore:, build:), and adjust to past tense if needed. Do NOT rewrite, paraphrase, or summarize.
 
 **Additional guidance**
-- Check for revert/re-apply patterns and only keep the final entry state
-- Add an additional one-liner to the frontmatter seo description.
+- Check for revert/re-apply patterns and only keep the final entry state.
+- Update the `seo.description` to briefly mention the key highlights (amendment count, notable features, major fixes).
 - Highlight the most important aspects of the release and add a summary of the changes to the Introducing XRP Ledger Version section.
 
 ## Step 5: Clean up
