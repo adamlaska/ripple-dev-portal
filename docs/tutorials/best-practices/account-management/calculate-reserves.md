@@ -51,6 +51,11 @@ pip install xrpl-py
 go mod tidy
 ```
 {% /tab %}
+{% tab label="Java" %}
+```bash
+mvn compile
+```
+{% /tab %}
 {% /tabs %}
 
 ### 2. Set up client
@@ -66,6 +71,9 @@ Import the XRPL library and create a client connection to a testnet server.
 {% /tab %}
 {% tab label="Go" %}
 {% code-snippet file="/_code-samples/calculate-reserves/go/calculate_reserves.go" language="go" from="// Set up client" to="// Look up reserve values" /%}
+{% /tab %}
+{% tab label="Java" %}
+{% code-snippet file="/_code-samples/calculate-reserves/java/CalculateReserves.java" language="java" from="// Set up client" to="// Look up reserve values" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -83,6 +91,9 @@ Retrieve the base and incremental reserve values using the [`server_info`](https
 {% tab label="Go" %}
 {% code-snippet file="/_code-samples/calculate-reserves/go/calculate_reserves.go" language="go" from="// Look up reserve values" to="// Look up owner count"/%}
 {% /tab %}
+{% tab label="Java" %}
+{% code-snippet file="/_code-samples/calculate-reserves/java/CalculateReserves.java" language="java" from="// Look up reserve values" to="// Look up owner count" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 4. Determine owner reserve
@@ -98,6 +109,9 @@ Once you have the incremental reserve value, multiply that by the number of obje
 {% /tab %}
 {% tab label="Go" %}
 {% code-snippet file="/_code-samples/calculate-reserves/go/calculate_reserves.go" language="go" from="// Look up owner count" to="// Calculate total reserve" /%}
+{% /tab %}
+{% tab label="Java" %}
+{% code-snippet file="/_code-samples/calculate-reserves/java/CalculateReserves.java" language="java" from="// Look up owner count" to="// Calculate total reserve" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -116,6 +130,9 @@ Use the following formula to calculate an account's total reserve requirement:
 {% /tab %}
 {% tab label="Go" %}
 {% code-snippet file="/_code-samples/calculate-reserves/go/calculate_reserves.go" language="go" from="// Calculate total reserve" /%}
+{% /tab %}
+{% tab label="Java" %}
+{% code-snippet file="/_code-samples/calculate-reserves/java/CalculateReserves.java" language="java" from="// Calculate total reserve" /%}
 {% /tab %}
 {% /tabs %}
 
