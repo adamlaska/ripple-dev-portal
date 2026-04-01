@@ -495,7 +495,10 @@ For other platforms, please [build from source](https://github.com/XRPLF/rippled
 
 We welcome reviews of the `rippled` code and urge researchers to responsibly disclose any issues they may find.
 
-To report a bug, please send a detailed report to: <bugs@xrpl.org>
+For more information, see:
+
+- [Ripple's Bug Bounty Program](https://ripple.com/legal/bug-bounty/)
+- [`rippled` Security Policy](https://github.com/XRPLF/rippled/blob/develop/SECURITY.md)
 """)
 
     # Unsorted entries with full context (after all published sections)

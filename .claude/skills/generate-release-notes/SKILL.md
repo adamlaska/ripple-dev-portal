@@ -51,7 +51,7 @@ The HTML comment contains three lists — follow them exactly:
 - Entries on **neither** list: Remove these entries.
 
 **3b. Scan unsorted entries for unreleased amendment work:**
-Search through ALL unsorted entries for titles, labels, descriptions, or files that reference amendments on the "Exclude" and "Other amendments not part of this release" lists. Remove ANY matches, including bug fixes, features, and refactors related to them. These are unreleased work and do not belong in the release notes.
+Search through ALL unsorted entries for titles, labels, descriptions, or files that reference amendments on the "Exclude" or "Other amendments not part of this release" lists. Remove entries that directly implement, enable, fix, or refactor these amendments. Keep entries that are general changes that merely reference the amendment as motivation — if the code change is useful on its own regardless of whether the amendment ships, keep it.
 
 **3c. If you disagree with any amendment decisions, make a note to the user but do NOT deviate from the rules.**
 
@@ -109,8 +109,8 @@ After sorting, reformat each entry to match the release notes style.
 
 ## Step 6: Clean up
 
-- Update the `seo.description` to briefly mention the key highlights (amendment count, notable features, major fixes).
-- Highlight the most important aspects of the release and add a summary of the changes to the Introducing XRP Ledger Version section.
+- Add a short and generic description of changes to the existing `seo.description` frontmatter, e.g., "This version introduces new amendments and bug fixes." Do not create long lists of detailed changes.
+- Add a more detailed summary of the release to the existing "Introducing XRP Ledger Version X.Y.Z" section. Include amendment names (organized in a list if more than 2), featuress, and breaking changes. Limit this to 1 paragraph.
 - Do NOT delete the **Credits** or **Bug Bounties and Responsible Disclosures** sections
 - Remove empty subsections that have no entries
 - Remove all HTML comments (sorting instructions)
