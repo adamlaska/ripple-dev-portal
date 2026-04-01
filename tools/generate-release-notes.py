@@ -196,7 +196,10 @@ def parse_features_macro(text):
 
 def fetch_amendment_diff(from_ref, to_ref):
     """Compare features.macro between two refs to find amendment changes.
-    Returns a dict of {name: True/False} to determine amendment inclusion.
+    Returns (changes, unchanged) where:
+    - changes: {name: True/False} for amendments that changed status
+    - unchanged: {name: True/False} for amendments with no status change
+    True = include; False = exclude
     """
     macro_path = "repos/XRPLF/rippled/contents/include/xrpl/protocol/detail/features.macro"
 
@@ -223,7 +226,13 @@ def fetch_amendment_diff(from_ref, to_ref):
         if name not in to_amendments:
             changes[name] = from_amendments[name].startswith("yes")
 
-    return changes
+    # Unchanged amendments to also exclude (unreleased work)
+    unchanged = sorted(
+        name for name, to_status in to_amendments.items()
+        if name not in changes and to_status != "retired" and not to_status.startswith("yes")
+    )
+
+    return changes, unchanged
 
 
 def fetch_prs_graphql(pr_numbers):
@@ -396,7 +405,7 @@ def format_uncategorized_entry(pr_number, title, labels, body, files=None, link_
     return "\n".join(parts)
 
 
-def generate_markdown(version, release_date, amendment_diff, amendment_entries, entries, authors, version_commit):
+def generate_markdown(version, release_date, amendment_diff, amendment_unchanged, amendment_entries, entries, authors, version_commit):
     """Generate the full markdown release notes."""
     year = release_date.split("-")[0]
     parts = []
@@ -445,14 +454,16 @@ For other platforms, please [build from source](https://github.com/XRPLF/rippled
 
     # Amendments section (auto-sorted by features.macro detection with diff guidance for AI)
     parts.append("\n### Amendments\n")
-    if amendment_diff:
-        included = [name for name, include in sorted(amendment_diff.items()) if include]
-        excluded = [name for name, include in sorted(amendment_diff.items()) if not include]
-        comment_lines = ["<!-- Include or remove amendment entries using this info. Remove this comment after sorting."]
+    if amendment_diff or amendment_unchanged:
+        included = sorted(name for name, include in amendment_diff.items() if include)
+        excluded = sorted(name for name, include in amendment_diff.items() if not include)
+        comment_lines = ["<!-- Amendment sorting instructions. Remove this comment after sorting."]
         if included:
-            comment_lines.append(f"Include these amendments: {', '.join(included)}")
+            comment_lines.append(f"Include: {', '.join(included)}")
         if excluded:
-            comment_lines.append(f"Exclude these amendments: {', '.join(excluded)}")
+            comment_lines.append(f"Exclude: {', '.join(excluded)}")
+        if amendment_unchanged:
+            comment_lines.append(f"Other amendments not part of this release: {', '.join(amendment_unchanged)}")
         comment_lines.append("-->")
         parts.append("\n".join(comment_lines) + "\n")
     for entry in amendment_entries:
@@ -465,11 +476,6 @@ For other platforms, please [build from source](https://github.com/XRPLF/rippled
     ]
     for section in sections:
         parts.append(f"\n### {section}\n")
-
-    # Uncategorized entries with full context
-    parts.append("<!-- Sort the entries below into the subsections above. Remove this comment after sorting. -->\n")
-    for entry in entries:
-        parts.append(entry)
 
     # Credits
     parts.append("\n\n## Credits\n")
@@ -491,6 +497,11 @@ We welcome reviews of the `rippled` code and urge researchers to responsibly dis
 
 To report a bug, please send a detailed report to: <bugs@xrpl.org>
 """)
+
+    # Unsorted entries with full context (after all published sections)
+    parts.append("<!-- Sort the entries below into the Full Changelog subsections. Remove this comment after sorting. -->\n")
+    for entry in entries:
+        parts.append(entry)
 
     return "\n".join(parts)
 
@@ -562,7 +573,7 @@ def main():
         print(f"Commits without PR or Issue linked: {len(orphan_commits)}")
     # Fetch amendment diff between refs
     print(f"Comparing features.macro between {args.from_ref} and {args.to_ref}...")
-    amendment_diff = fetch_amendment_diff(args.from_ref, args.to_ref)
+    amendment_diff, amendment_unchanged = fetch_amendment_diff(args.from_ref, args.to_ref)
     if amendment_diff:
         for name, include in sorted(amendment_diff.items()):
             status = "include" if include else "exclude"
@@ -625,7 +636,7 @@ def main():
             entries.append(entry)
 
     # Generate markdown
-    markdown = generate_markdown(version, args.date, amendment_diff, amendment_entries, entries, authors, version_commit)
+    markdown = generate_markdown(version, args.date, amendment_diff, amendment_unchanged, amendment_entries, entries, authors, version_commit)
 
     # Write output
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
