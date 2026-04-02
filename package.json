@@ -34,8 +34,7 @@
   },
   "overrides": {
     "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "@codemirror/state": "^6.6.0"
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "bootstrap": "^4.6.2",
