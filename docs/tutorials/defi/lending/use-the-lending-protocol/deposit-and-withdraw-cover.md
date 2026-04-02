@@ -32,6 +32,7 @@ To complete this tutorial, you should:
 - Have an XRP Ledger client library set up in your development environment. This page provides examples for the following:
   - **JavaScript** with the [xrpl.js library][]. See [Get Started Using JavaScript][] for setup steps.
   - **Python** with the [xrpl-py library][]. See [Get Started Using Python][] for setup steps.
+  - **Go** with the [xrpl-go library][]. See [Get Started Using Go][] for setup steps.
 
 ## Source Code
 
@@ -58,6 +59,13 @@ source .venv/bin/activate
 pip install -r requirements.txt
 ```
 {% /tab %}
+{% tab label="Go" %}
+From the code sample folder, use `go` to install dependencies.
+
+```bash
+go mod tidy
+```
+{% /tab %}
 {% /tabs %}
 
 ### 2. Set up client and accounts
@@ -78,6 +86,13 @@ To get started, import the necessary libraries and instantiate a client to conne
 
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_deposit_and_withdraw.py" language="py" before="# This step checks" /%}
 {% /tab %}
+{% tab label="Go" %}
+- `xrpl-go`: Used for XRPL client connection, transaction submission, and wallet handling.
+- `encoding/json` and `fmt`: Used for formatting and printing results to the console.
+- `os` and `os/exec`: Used to run tutorial set up scripts.
+
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-deposit-and-withdraw/main.go" language="go" before="// Check for setup data" /%}
+{% /tab %}
 {% /tabs %}
 
 Next, load the loan broker account, loan broker ID, and MPT issuance ID.
@@ -92,6 +107,11 @@ This example uses preconfigured accounts and loan broker data from the `lendingS
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_deposit_and_withdraw.py" language="py" from="# This step checks" before="# Prepare LoanBrokerCoverDeposit" /%}
 
 This example uses preconfigured accounts and loan broker data from the `lending_setup.py` script, but you can replace `loan_broker`, `loan_broker_id`, and `mpt_id` with your own values.
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-deposit-and-withdraw/main.go" language="go" from="// Check for setup data" before="// Prepare LoanBrokerCoverDeposit" /%}
+
+This example uses preconfigured accounts and loan broker data from the `lending-setup` script, but you can replace `loanBrokerWallet`, `loanBrokerID`, and `mptID` with your own values.
 {% /tab %}
 {% /tabs %}
 
@@ -110,6 +130,11 @@ The `Amount` field specifies the MPT and amount to deposit as first-loss capital
 
 The `amount` field specifies the MPT and amount to deposit as first-loss capital.
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-deposit-and-withdraw/main.go" language="go" from="// Prepare LoanBrokerCoverDeposit" before="// Sign, submit, and wait for deposit" /%}
+
+The `Amount` field specifies the MPT and amount to deposit as first-loss capital.
+{% /tab %}
 {% /tabs %}
 
 If the transaction succeeds, the amount is deposited and held in the pseudo-account associated with the `LoanBroker` entry.
@@ -124,6 +149,9 @@ Sign and submit the `LoanBrokerCoverDeposit` transaction to the XRP Ledger.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_deposit_and_withdraw.py" language="py" from="# Sign, submit, and wait for deposit" before="# Extract cover balance" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-deposit-and-withdraw/main.go" language="go" from="// Sign, submit, and wait for deposit" before="// Extract cover balance" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -140,6 +168,9 @@ Retrieve the cover balance from the transaction result by checking the `LoanBrok
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_deposit_and_withdraw.py" language="py" from="# Extract cover balance" before="# Prepare LoanBrokerCoverWithdraw" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-deposit-and-withdraw/main.go" language="go" from="// Extract cover balance" before="// Prepare LoanBrokerCoverWithdraw" /%}
+{% /tab %}
 {% /tabs %}
 
 The `LoanBroker` pseudo-account address is the `Account` field, and `CoverAvailable` shows the cover balance.
@@ -155,6 +186,9 @@ Create the [LoanBrokerCoverWithdraw transaction][] object.
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_deposit_and_withdraw.py" language="py" from="# Prepare LoanBrokerCoverWithdraw" before="# Sign, submit, and wait for withdraw" /%}
 {% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-deposit-and-withdraw/main.go" language="go" from="// Prepare LoanBrokerCoverWithdraw" before="// Sign, submit, and wait for withdraw" /%}
+{% /tab %}
 {% /tabs %}
 
 ### 7. Submit LoanBrokerCoverWithdraw transaction
@@ -167,6 +201,9 @@ Sign and submit the `LoanBrokerCoverWithdraw` transaction to the XRP Ledger.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_deposit_and_withdraw.py" language="py" from="# Sign, submit, and wait for withdraw" before="# Extract updated cover balance" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-deposit-and-withdraw/main.go" language="go" from="// Sign, submit, and wait for withdraw" before="// Extract updated cover balance" /%}
 {% /tab %}
 {% /tabs %}
 
@@ -182,6 +219,9 @@ Retrieve the updated cover balance from the transaction result.
 {% /tab %}
 {% tab label="Python" %}
 {% code-snippet file="/_code-samples/lending-protocol/py/cover_deposit_and_withdraw.py" language="py" from="# Extract updated cover balance" /%}
+{% /tab %}
+{% tab label="Go" %}
+{% code-snippet file="/_code-samples/lending-protocol/go/cover-deposit-and-withdraw/main.go" language="go" from="// Extract updated cover balance" /%}
 {% /tab %}
 {% /tabs %}
 

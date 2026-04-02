@@ -3,8 +3,9 @@ import { readSharedData } from '@redocly/realm/dist/server/utils/shared-data.js'
 const INDEX_PAGE_INFO_DATA_KEY = 'index-page-items';
 
 export function indexPages() {
-  /** @type {import("@redocly/realm/dist/server/plugins/types").PluginInstance } */
+  /** @type {import("@redocly/realm/dist/server/types").ExternalPlugin } */
   const instance = {
+    id: 'index-pages',
     // hook that gets executed after all routes were created
     async afterRoutesCreated(actions, { cache }) {
       // get all the routes that are ind pages
