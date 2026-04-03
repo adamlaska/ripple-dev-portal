@@ -27,7 +27,7 @@ from xrpl.wallet import generate_faucet_wallet
 
 client = JsonRpcClient("https://s.altnet.rippletest.net:51234")
 
-# Step 1: Fund an issuer account and an escrow creator account ----------------------
+# Fund an issuer account and an escrow creator account ----------------------
 print("\n=== Funding Accounts ===\n")
 issuer = generate_faucet_wallet(client, debug=True)
 creator = generate_faucet_wallet(client, debug=True)
@@ -38,7 +38,7 @@ print(f"Escrow Creator: {creator.address}")
 # Conditional MPT Escrow
 # ======================
 
-# Step 2: Issuer creates an MPT ----------------------
+# Issuer creates an MPT ----------------------
 print("\n=== Creating MPT ===\n")
 mpt_create_tx = MPTokenIssuanceCreate(
     account=issuer.address,
@@ -60,7 +60,7 @@ if mpt_create_response.result["meta"]["TransactionResult"] != "tesSUCCESS":
 mpt_issuance_id = mpt_create_response.result["meta"]["mpt_issuance_id"]
 print(f"MPT created: {mpt_issuance_id}")
 
-# Step 3: Escrow Creator authorizes the MPT ----------------------
+# Escrow Creator authorizes the MPT ----------------------
 print("\n=== Escrow Creator Authorizing MPT ===\n")
 mpt_auth_tx = MPTokenAuthorize(
     account=creator.address,
@@ -77,7 +77,7 @@ if mpt_auth_response.result["meta"]["TransactionResult"] != "tesSUCCESS":
     exit(1)
 print("Escrow Creator authorized for MPT.")
 
-# Step 4: Issuer sends MPTs to escrow creator ----------------------
+# Issuer sends MPTs to escrow creator ----------------------
 print("\n=== Issuer Sending MPTs to Escrow Creator ===\n")
 mpt_payment_tx = Payment(
     account=issuer.address,
@@ -98,7 +98,7 @@ if mpt_payment_response.result["meta"]["TransactionResult"] != "tesSUCCESS":
     exit(1)
 print("Successfully sent 5000 MPTs to Escrow Creator.")
 
-# Step 5: Escrow Creator creates a conditional MPT escrow ----------------------
+# Escrow Creator creates a conditional MPT escrow ----------------------
 print("\n=== Creating Conditional MPT Escrow ===\n")
 
 # Generate crypto-condition
@@ -137,7 +137,7 @@ if mpt_escrow_response.result["meta"]["TransactionResult"] != "tesSUCCESS":
 mpt_escrow_seq = mpt_escrow_response.result["tx_json"]["Sequence"]
 print(f"Conditional MPT escrow created. Sequence: {mpt_escrow_seq}")
 
-# Step 6: Finish the conditional MPT escrow with the fulfillment ----------------------
+# Finish the conditional MPT escrow with the fulfillment ----------------------
 print("\n=== Finishing Conditional MPT Escrow ===\n")
 mpt_escrow_finish_tx = EscrowFinish(
     account=creator.address,
@@ -161,7 +161,7 @@ print(f"Conditional MPT escrow finished successfully: https://testnet.xrpl.org/t
 # Timed Trust Line Token Escrow
 # =============================
 
-# Step 7: Enable trust line token escrows on the issuer ----------------------
+# Enable trust line token escrows on the issuer ----------------------
 print("\n=== Enabling Trust Line Token Escrows on Issuer ===\n")
 account_set_tx = AccountSet(
     account=issuer.address,
@@ -178,7 +178,7 @@ if account_set_response.result["meta"]["TransactionResult"] != "tesSUCCESS":
     exit(1)
 print("Trust line token escrows enabled by issuer.")
 
-# Step 8: Escrow Creator sets up a trust line to the issuer ----------------------
+# Escrow Creator sets up a trust line to the issuer ----------------------
 print("\n=== Setting Up Trust Line ===\n")
 currency_code = "IOU"
 
@@ -201,7 +201,7 @@ if trust_response.result["meta"]["TransactionResult"] != "tesSUCCESS":
     exit(1)
 print('Trust line successfully created for "IOU" tokens.')
 
-# Step 9: Issuer sends IOU tokens to creator ----------------------
+# Issuer sends IOU tokens to creator ----------------------
 print("\n=== Issuer Sending IOU Tokens to Escrow Creator ===\n")
 iou_payment_tx = Payment(
     account=issuer.address,
@@ -223,7 +223,7 @@ if iou_pay_response.result["meta"]["TransactionResult"] != "tesSUCCESS":
     exit(1)
 print(f"Successfully sent 5000 {currency_code} tokens.")
 
-# Step 10: Escrow Creator creates a timed trust line token escrow ----------------------
+# Escrow Creator creates a timed trust line token escrow ----------------------
 print("\n=== Creating Timed Trust Line Token Escrow ===\n")
 delay = 10  # seconds
 now = datetime.now(tz=UTC)
@@ -260,7 +260,7 @@ if iou_escrow_response.result["meta"]["TransactionResult"] != "tesSUCCESS":
 iou_escrow_seq = iou_escrow_response.result["tx_json"]["Sequence"]
 print(f"Trust Line Token escrow created. Sequence: {iou_escrow_seq}")
 
-# Step 11: Wait for the escrow to mature, then finish it --------------------
+# Wait for the escrow to mature, then finish it --------------------
 print("\n=== Waiting For Timed Trust Line Token Escrow to Mature ===\n")
 
 # Countdown delay until escrow matures
@@ -286,7 +286,7 @@ while not escrow_ready:
         print(f"Escrow needs to wait another {time_difference}s.")
         sleep(time_difference)
 
-# Step 12: Finish the timed trust line token escrow --------------------
+# Finish the timed trust line token escrow --------------------
 print("\n=== Finishing Timed Trust Line Token Escrow ===\n")
 iou_escrow_finish_tx = EscrowFinish(
     account=creator.address,

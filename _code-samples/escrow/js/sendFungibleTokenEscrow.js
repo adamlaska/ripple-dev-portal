@@ -8,7 +8,7 @@ import { randomBytes } from 'crypto'
 const client = new xrpl.Client('wss://s.altnet.rippletest.net:51233')
 await client.connect()
 
-// Step 1: Fund an issuer account and an escrow creator account ----------------------
+// Fund an issuer account and an escrow creator account ----------------------
 console.log(`\n=== Funding Accounts ===\n`)
 const [
   { wallet: issuer },
@@ -24,7 +24,7 @@ console.log(`Escrow Creator: ${creator.address}`)
 // Conditional MPT Escrow
 // ======================
 
-// Step 2: Issuer creates an MPT ----------------------
+// Issuer creates an MPT ----------------------
 console.log('\n=== Creating MPT ===\n')
 const mptCreateTx = {
   TransactionType: 'MPTokenIssuanceCreate',
@@ -53,7 +53,7 @@ if (mptCreateResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
 const mptIssuanceId = mptCreateResponse.result.meta.mpt_issuance_id
 console.log(`MPT created: ${mptIssuanceId}`)
 
-// Step 3: Escrow Creator authorizes the MPT ----------------------
+// Escrow Creator authorizes the MPT ----------------------
 console.log('\n=== Escrow Creator Authorizing MPT ===\n')
 const mptAuthTx = {
   TransactionType: 'MPTokenAuthorize',
@@ -76,7 +76,7 @@ if (mptAuthResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
 }
 console.log('Escrow Creator authorized for MPT.')
 
-// Step 4: Issuer sends MPTs to escrow creator ----------------------
+// Issuer sends MPTs to escrow creator ----------------------
 console.log('\n=== Issuer Sending MPTs to Escrow Creator ===\n')
 const mptPaymentTx = {
   TransactionType: 'Payment',
@@ -103,7 +103,7 @@ if (mptPaymentResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
 }
 console.log('Successfully sent 5000 MPTs to Escrow Creator.')
 
-// Step 5: Escrow Creator creates a conditional MPT escrow ----------------------
+// Escrow Creator creates a conditional MPT escrow ----------------------
 console.log('\n=== Creating Conditional MPT Escrow ===\n')
 
 // Generate crypto-condition
@@ -150,7 +150,7 @@ if (mptEscrowResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
 const mptEscrowSeq = mptEscrowResponse.result.tx_json.Sequence
 console.log(`Conditional MPT escrow created. Sequence: ${mptEscrowSeq}`)
 
-// Step 6: Finish the conditional MPT escrow with the fulfillment ----------------------
+// Finish the conditional MPT escrow with the fulfillment ----------------------
 console.log('\n=== Finishing Conditional MPT Escrow ===\n')
 const mptEscrowFinishTx = {
   TransactionType: 'EscrowFinish',
@@ -180,7 +180,7 @@ console.log(`Conditional MPT escrow finished successfully: https://testnet.xrpl.
 // Timed Trust Line Token Escrow
 // =============================
 
-// Step 7: Enable trust line token escrows on the issuer ----------------------
+// Enable trust line token escrows on the issuer ----------------------
 console.log('\n=== Enabling Trust Line Token Escrows on Issuer ===\n')
 const accountSetTx = {
   TransactionType: 'AccountSet',
@@ -203,7 +203,7 @@ if (accountSetResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
 }
 console.log('Trust line token escrows enabled by issuer.')
 
-// Step 8: Escrow Creator sets up a trust line to the issuer ----------------------
+// Escrow Creator sets up a trust line to the issuer ----------------------
 console.log('\n=== Setting Up Trust Line ===\n')
 const currencyCode = 'IOU'
 
@@ -232,7 +232,7 @@ if (trustResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
 }
 console.log('Trust line successfully created for "IOU" tokens.')
 
-// Step 9: Issuer sends IOU tokens to creator ----------------------
+// Issuer sends IOU tokens to creator ----------------------
 console.log('\n=== Issuer Sending IOU Tokens to Escrow Creator ===\n')
 const iouPaymentTx = {
   TransactionType: 'Payment',
@@ -260,7 +260,7 @@ if (iouPayResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
 }
 console.log(`Successfully sent 5000 ${currencyCode} tokens.`)
 
-// Step 10: Escrow Creator creates a timed trust line token escrow ----------------------
+// Escrow Creator creates a timed trust line token escrow ----------------------
 console.log('\n=== Creating Timed Trust Line Token Escrow ===\n')
 const delay = 10 // seconds
 const now = new Date()
@@ -302,7 +302,7 @@ if (iouEscrowResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
 const iouEscrowSeq = iouEscrowResponse.result.tx_json.Sequence
 console.log(`Trust Line Token escrow created. Sequence: ${iouEscrowSeq}`)
 
-// Step 11: Wait for the escrow to mature, then finish it --------------------
+// Wait for the escrow to mature, then finish it --------------------
 console.log(`\n=== Waiting For Timed Trust Line Token Escrow to Mature ===\n`)
 
 // Sleep function to countdown delay until escrow matures
@@ -335,7 +335,7 @@ while (!escrowReady) {
   }
 }
 
-// Step 12: Finish the timed trust line token escrow --------------------
+// Finish the timed trust line token escrow --------------------
 console.log('\n=== Finishing Timed Trust Line Token Escrow ===\n')
 const iouEscrowFinishTx = {
   TransactionType: 'EscrowFinish',

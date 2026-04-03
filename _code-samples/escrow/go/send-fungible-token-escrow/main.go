@@ -38,7 +38,7 @@ func main() {
 		panic(err)
 	}
 
-	// Step 1: Fund an issuer account and an escrow creator account ----------------------
+	// Fund an issuer account and an escrow creator account ----------------------
 	fmt.Printf("\n=== Funding Accounts ===\n\n")
 
 	createAndFund := func(label string) wallet.Wallet {
@@ -78,7 +78,7 @@ func main() {
 	// Conditional MPT Escrow
 	// ======================
 
-	// Step 2: Issuer creates an MPT ----------------------
+	// Issuer creates an MPT ----------------------
 	fmt.Printf("\n=== Creating MPT ===\n\n")
 	maxAmount := types.XRPCurrencyAmount(1000000)
 	mptCreateTx := transaction.MPTokenIssuanceCreate{
@@ -112,7 +112,7 @@ func main() {
 	mptIssuanceID := string(*mptCreateResponse.Meta.MPTIssuanceID)
 	fmt.Printf("MPT created: %s\n", mptIssuanceID)
 
-	// Step 3: Escrow Creator authorizes the MPT ----------------------
+	// Escrow Creator authorizes the MPT ----------------------
 	fmt.Printf("\n=== Escrow Creator Authorizing MPT ===\n\n")
 	mptAuthTx := transaction.MPTokenAuthorize{
 		BaseTx: transaction.BaseTx{
@@ -139,7 +139,7 @@ func main() {
 	}
 	fmt.Printf("Escrow Creator authorized for MPT.\n")
 
-	// Step 4: Issuer sends MPTs to escrow creator ----------------------
+	// Issuer sends MPTs to escrow creator ----------------------
 	fmt.Printf("\n=== Issuer Sending MPTs to Escrow Creator ===\n\n")
 	mptPaymentTx := transaction.Payment{
 		BaseTx: transaction.BaseTx{
@@ -170,7 +170,7 @@ func main() {
 	}
 	fmt.Printf("Successfully sent 5000 MPTs to Escrow Creator.\n")
 
-	// Step 5: Escrow Creator creates a conditional MPT escrow ----------------------
+	// Escrow Creator creates a conditional MPT escrow ----------------------
 	fmt.Printf("\n=== Creating Conditional MPT Escrow ===\n\n")
 
 	// Generate crypto-condition
@@ -229,7 +229,7 @@ func main() {
 	mptEscrowSeq := mptEscrowResponse.TxJSON.Sequence()
 	fmt.Printf("Conditional MPT escrow created. Sequence: %d\n", mptEscrowSeq)
 
-	// Step 6: Finish the conditional MPT escrow with the fulfillment ----------------------
+	// Finish the conditional MPT escrow with the fulfillment ----------------------
 	fmt.Printf("\n=== Finishing Conditional MPT Escrow ===\n\n")
 	mptEscrowFinishTx := transaction.EscrowFinish{
 		BaseTx: transaction.BaseTx{
@@ -263,7 +263,7 @@ func main() {
 	// Timed Trust Line Token Escrow
 	// =============================
 
-	// Step 7: Enable trust line token escrows on the issuer ----------------------
+	// Enable trust line token escrows on the issuer ----------------------
 	fmt.Printf("\n=== Enabling Trust Line Token Escrows on Issuer ===\n\n")
 	accountSetTx := transaction.AccountSet{
 		BaseTx: transaction.BaseTx{
@@ -290,7 +290,7 @@ func main() {
 	}
 	fmt.Printf("Trust line token escrows enabled by issuer.\n")
 
-	// Step 8: Escrow Creator sets up a trust line to the issuer ----------------------
+	// Escrow Creator sets up a trust line to the issuer ----------------------
 	fmt.Printf("\n=== Setting Up Trust Line ===\n\n")
 	currencyCode := "IOU"
 
@@ -323,7 +323,7 @@ func main() {
 	}
 	fmt.Printf("Trust line successfully created for \"IOU\" tokens.\n")
 
-	// Step 9: Issuer sends IOU tokens to creator ----------------------
+	// Issuer sends IOU tokens to creator ----------------------
 	fmt.Printf("\n=== Issuer Sending IOU Tokens to Escrow Creator ===\n\n")
 	iouPaymentTx := transaction.Payment{
 		BaseTx: transaction.BaseTx{
@@ -355,7 +355,7 @@ func main() {
 	}
 	fmt.Printf("Successfully sent 5000 %s tokens.\n", currencyCode)
 
-	// Step 10: Escrow Creator creates a timed trust line token escrow ----------------------
+	// Escrow Creator creates a timed trust line token escrow ----------------------
 	fmt.Printf("\n=== Creating Timed Trust Line Token Escrow ===\n\n")
 	delay := 10 // seconds
 	now := time.Now()
@@ -400,7 +400,7 @@ func main() {
 	iouEscrowSeq := iouEscrowResponse.TxJSON.Sequence()
 	fmt.Printf("Trust Line Token escrow created. Sequence: %d\n", iouEscrowSeq)
 
-	// Step 11: Wait for the escrow to mature, then finish it --------------------
+	// Wait for the escrow to mature, then finish it --------------------
 	fmt.Printf("\n=== Waiting For Timed Trust Line Token Escrow to Mature ===\n\n")
 
 	// Countdown delay until escrow matures
@@ -435,7 +435,7 @@ func main() {
 		}
 	}
 
-	// Step 12: Finish the timed trust line token escrow --------------------
+	// Finish the timed trust line token escrow --------------------
 	fmt.Printf("\n=== Finishing Timed Trust Line Token Escrow ===\n\n")
 	iouEscrowFinishTx := transaction.EscrowFinish{
 		BaseTx: transaction.BaseTx{
