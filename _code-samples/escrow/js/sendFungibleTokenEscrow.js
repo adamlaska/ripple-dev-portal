@@ -173,9 +173,9 @@ if (mptFinishResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
 }
 console.log(`Conditional MPT escrow finished successfully: https://testnet.xrpl.org/transactions/${mptFinishResponse.result.hash}`)
 
-// ==================================
+// =============================
 // Timed Trust Line Token Escrow
-// ==================================
+// =============================
 
 // Step 7: Enable trust line token escrows on the issuer ----------------------
 console.log('\n=== Enabling Trust Line Token Escrows on Issuer ===\n')
