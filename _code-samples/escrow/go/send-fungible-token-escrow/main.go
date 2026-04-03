@@ -74,9 +74,7 @@ func main() {
 	fmt.Printf("Issuer: %s\n", issuer.ClassicAddress)
 	fmt.Printf("Escrow Creator: %s\n", creator.ClassicAddress)
 
-	// ======================
-	// Conditional MPT Escrow
-	// ======================
+	// ======= Conditional MPT Escrow =======
 
 	// Issuer creates an MPT ----------------------
 	fmt.Printf("\n=== Creating MPT ===\n\n")
@@ -259,9 +257,7 @@ func main() {
 	}
 	fmt.Printf("Conditional MPT escrow finished successfully: https://testnet.xrpl.org/transactions/%s\n", mptFinishResponse.Hash)
 
-	// =============================
-	// Timed Trust Line Token Escrow
-	// =============================
+	// ====== Timed Trust Line Token Escrow ======
 
 	// Enable trust line token escrows on the issuer ----------------------
 	fmt.Printf("\n=== Enabling Trust Line Token Escrows on Issuer ===\n\n")

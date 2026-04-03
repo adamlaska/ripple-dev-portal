@@ -20,9 +20,7 @@ const [
 console.log(`Issuer: ${issuer.address}`)
 console.log(`Escrow Creator: ${creator.address}`)
 
-// ======================
-// Conditional MPT Escrow
-// ======================
+// ====== Conditional MPT Escrow ======
 
 // Issuer creates an MPT ----------------------
 console.log('\n=== Creating MPT ===\n')
@@ -176,9 +174,7 @@ if (mptFinishResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
 }
 console.log(`Conditional MPT escrow finished successfully: https://testnet.xrpl.org/transactions/${mptFinishResponse.result.hash}`)
 
-// =============================
-// Timed Trust Line Token Escrow
-// =============================
+// ====== Timed Trust Line Token Escrow ======
 
 // Enable trust line token escrows on the issuer ----------------------
 console.log('\n=== Enabling Trust Line Token Escrows on Issuer ===\n')

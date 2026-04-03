@@ -34,9 +34,7 @@ creator = generate_faucet_wallet(client, debug=True)
 print(f"Issuer: {issuer.address}")
 print(f"Escrow Creator: {creator.address}")
 
-# ======================
-# Conditional MPT Escrow
-# ======================
+# ====== Conditional MPT Escrow ======
 
 # Issuer creates an MPT ----------------------
 print("\n=== Creating MPT ===\n")
@@ -157,9 +155,7 @@ if mpt_finish_response.result["meta"]["TransactionResult"] != "tesSUCCESS":
     exit(1)
 print(f"Conditional MPT escrow finished successfully: https://testnet.xrpl.org/transactions/{mpt_finish_response.result['hash']}")
 
-# =============================
-# Timed Trust Line Token Escrow
-# =============================
+# ====== Timed Trust Line Token Escrow ======
 
 # Enable trust line token escrows on the issuer ----------------------
 print("\n=== Enabling Trust Line Token Escrows on Issuer ===\n")
