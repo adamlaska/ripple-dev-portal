@@ -1,3 +1,6 @@
+# This example demonstrates how to create escrows that hold fungible tokens.
+# It covers MPTs and Trust Line Tokens, and uses conditional and timed escrows.
+
 import json
 from datetime import datetime, timedelta, UTC
 from os import urandom

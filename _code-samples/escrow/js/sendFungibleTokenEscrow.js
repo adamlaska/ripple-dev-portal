@@ -1,3 +1,6 @@
+// This example demonstrates how to create escrows that hold fungible tokens.
+// It covers MPTs and Trust Line Tokens, and uses conditional and timed escrows.
+
 import xrpl from 'xrpl'
 import { PreimageSha256 } from 'five-bells-condition'
 import { randomBytes } from 'crypto'
