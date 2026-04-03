@@ -36,18 +36,18 @@ console.log(JSON.stringify(mptCreateTx, null, 2))
 
 // Submit, sign, and wait for validation
 console.log(`\nSubmitting MPTokenIssuanceCreate transaction...`)
-const mptCreateResult = await client.submitAndWait(mptCreateTx, {
+const mptCreateResponse = await client.submitAndWait(mptCreateTx, {
   wallet: issuer,
   autofill: true
 })
-if (mptCreateResult.result.meta.TransactionResult !== 'tesSUCCESS') {
-  console.error(`MPTokenIssuanceCreate failed: ${mptCreateResult.result.meta.TransactionResult}`)
+if (mptCreateResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
+  console.error(`MPTokenIssuanceCreate failed: ${mptCreateResponse.result.meta.TransactionResult}`)
   await client.disconnect()
   process.exit(1)
 }
 
 // Extract the MPT issuance ID from the transaction result
-const mptIssuanceId = mptCreateResult.result.meta.mpt_issuance_id
+const mptIssuanceId = mptCreateResponse.result.meta.mpt_issuance_id
 console.log(`MPT created: ${mptIssuanceId}`)
 
 // Step 3: Escrow Creator authorizes the MPT ----------------------
@@ -62,12 +62,12 @@ xrpl.validate(mptAuthTx)
 console.log(JSON.stringify(mptAuthTx, null, 2))
 
 console.log(`\nSubmitting MPTokenAuthorize transaction...`)
-const mptAuthResult = await client.submitAndWait(mptAuthTx, {
+const mptAuthResponse = await client.submitAndWait(mptAuthTx, {
   wallet: creator,
   autofill: true
 })
-if (mptAuthResult.result.meta.TransactionResult !== 'tesSUCCESS') {
-  console.error(`MPTokenAuthorize failed: ${mptAuthResult.result.meta.TransactionResult}`)
+if (mptAuthResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
+  console.error(`MPTokenAuthorize failed: ${mptAuthResponse.result.meta.TransactionResult}`)
   await client.disconnect()
   process.exit(1)
 }
@@ -89,12 +89,12 @@ xrpl.validate(mptPaymentTx)
 console.log(JSON.stringify(mptPaymentTx, null, 2))
 
 console.log(`\nSubmitting MPT Payment transaction...`)
-const mptPaymentResult = await client.submitAndWait(mptPaymentTx, {
+const mptPaymentResponse = await client.submitAndWait(mptPaymentTx, {
   wallet: issuer,
   autofill: true
 })
-if (mptPaymentResult.result.meta.TransactionResult !== 'tesSUCCESS') {
-  console.error(`MPT Payment failed: ${mptPaymentResult.result.meta.TransactionResult}`)
+if (mptPaymentResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
+  console.error(`MPT Payment failed: ${mptPaymentResponse.result.meta.TransactionResult}`)
   await client.disconnect()
   process.exit(1)
 }
@@ -133,18 +133,18 @@ xrpl.validate(mptEscrowCreateTx)
 console.log(JSON.stringify(mptEscrowCreateTx, null, 2))
 
 console.log(`\nSubmitting MPT EscrowCreate transaction...`)
-const mptEscrowResult = await client.submitAndWait(mptEscrowCreateTx, {
+const mptEscrowResponse = await client.submitAndWait(mptEscrowCreateTx, {
   wallet: creator,
   autofill: true
 })
-if (mptEscrowResult.result.meta.TransactionResult !== 'tesSUCCESS') {
-  console.error(`MPT EscrowCreate failed: ${mptEscrowResult.result.meta.TransactionResult}`)
+if (mptEscrowResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
+  console.error(`MPT EscrowCreate failed: ${mptEscrowResponse.result.meta.TransactionResult}`)
   await client.disconnect()
   process.exit(1)
 }
 
 // Save the sequence number to identify the escrow later
-const mptEscrowSeq = mptEscrowResult.result.tx_json.Sequence
+const mptEscrowSeq = mptEscrowResponse.result.tx_json.Sequence
 console.log(`Conditional MPT escrow created. Sequence: ${mptEscrowSeq}`)
 
 // Step 6: Finish the conditional MPT escrow with the fulfillment ----------------------
@@ -162,16 +162,16 @@ xrpl.validate(mptEscrowFinishTx)
 console.log(JSON.stringify(mptEscrowFinishTx, null, 2))
 
 console.log(`\nSubmitting EscrowFinish transaction...`)
-const mptFinishResult = await client.submitAndWait(mptEscrowFinishTx, {
+const mptFinishResponse = await client.submitAndWait(mptEscrowFinishTx, {
   wallet: creator,
   autofill: true
 })
-if (mptFinishResult.result.meta.TransactionResult !== 'tesSUCCESS') {
-  console.error(`MPT EscrowFinish failed: ${mptFinishResult.result.meta.TransactionResult}`)
+if (mptFinishResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
+  console.error(`MPT EscrowFinish failed: ${mptFinishResponse.result.meta.TransactionResult}`)
   await client.disconnect()
   process.exit(1)
 }
-console.log(`Conditional MPT escrow finished successfully: https://testnet.xrpl.org/transactions/${mptFinishResult.result.hash}`)
+console.log(`Conditional MPT escrow finished successfully: https://testnet.xrpl.org/transactions/${mptFinishResponse.result.hash}`)
 
 // ==================================
 // Timed Trust Line Token Escrow
@@ -189,12 +189,12 @@ xrpl.validate(accountSetTx)
 console.log(JSON.stringify(accountSetTx, null, 2))
 
 console.log(`\nSubmitting AccountSet transaction...`)
-const accountSetResult = await client.submitAndWait(accountSetTx, {
+const accountSetResponse = await client.submitAndWait(accountSetTx, {
   wallet: issuer,
   autofill: true
 })
-if (accountSetResult.result.meta.TransactionResult !== 'tesSUCCESS') {
-  console.error(`AccountSet failed: ${accountSetResult.result.meta.TransactionResult}`)
+if (accountSetResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
+  console.error(`AccountSet failed: ${accountSetResponse.result.meta.TransactionResult}`)
   await client.disconnect()
   process.exit(1)
 }
@@ -218,12 +218,12 @@ xrpl.validate(trustSetTx)
 console.log(JSON.stringify(trustSetTx, null, 2))
 
 console.log(`\nSubmitting TrustSet transaction...`)
-const trustResult = await client.submitAndWait(trustSetTx, {
+const trustResponse = await client.submitAndWait(trustSetTx, {
   wallet: creator,
   autofill: true
 })
-if (trustResult.result.meta.TransactionResult !== 'tesSUCCESS') {
-  console.error(`TrustSet failed: ${trustResult.result.meta.TransactionResult}`)
+if (trustResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
+  console.error(`TrustSet failed: ${trustResponse.result.meta.TransactionResult}`)
   await client.disconnect()
   process.exit(1)
 }
@@ -246,12 +246,12 @@ xrpl.validate(iouPaymentTx)
 console.log(JSON.stringify(iouPaymentTx, null, 2))
 
 console.log(`\nSubmitting Trust Line Token payment transaction...`)
-const iouPayResult = await client.submitAndWait(iouPaymentTx, {
+const iouPayResponse = await client.submitAndWait(iouPaymentTx, {
   wallet: issuer,
   autofill: true
 })
-if (iouPayResult.result.meta.TransactionResult !== 'tesSUCCESS') {
-  console.error(`Trust Line Token payment failed: ${iouPayResult.result.meta.TransactionResult}`)
+if (iouPayResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
+  console.error(`Trust Line Token payment failed: ${iouPayResponse.result.meta.TransactionResult}`)
   await client.disconnect()
   process.exit(1)
 }
@@ -285,18 +285,18 @@ xrpl.validate(iouEscrowCreateTx)
 console.log(JSON.stringify(iouEscrowCreateTx, null, 2))
 
 console.log(`\nSubmitting Trust Line Token EscrowCreate transaction...`)
-const iouEscrowResult = await client.submitAndWait(iouEscrowCreateTx, {
+const iouEscrowResponse = await client.submitAndWait(iouEscrowCreateTx, {
   wallet: creator,
   autofill: true
 })
-if (iouEscrowResult.result.meta.TransactionResult !== 'tesSUCCESS') {
-  console.error(`Trust Line Token EscrowCreate failed: ${iouEscrowResult.result.meta.TransactionResult}`)
+if (iouEscrowResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
+  console.error(`Trust Line Token EscrowCreate failed: ${iouEscrowResponse.result.meta.TransactionResult}`)
   await client.disconnect()
   process.exit(1)
 }
 
 // Save the sequence number to identify the escrow later
-const iouEscrowSeq = iouEscrowResult.result.tx_json.Sequence
+const iouEscrowSeq = iouEscrowResponse.result.tx_json.Sequence
 console.log(`Trust Line Token escrow created. Sequence: ${iouEscrowSeq}`)
 
 // Step 11: Wait for the escrow to mature, then finish it --------------------
@@ -345,15 +345,15 @@ xrpl.validate(iouEscrowFinishTx)
 console.log(JSON.stringify(iouEscrowFinishTx, null, 2))
 
 console.log(`\nSubmitting EscrowFinish transaction...`)
-const iouFinishResult = await client.submitAndWait(iouEscrowFinishTx, {
+const iouFinishResponse = await client.submitAndWait(iouEscrowFinishTx, {
   wallet: creator,
   autofill: true
 })
-if (iouFinishResult.result.meta.TransactionResult !== 'tesSUCCESS') {
-  console.error(`Trust Line Token EscrowFinish failed: ${iouFinishResult.result.meta.TransactionResult}`)
+if (iouFinishResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
+  console.error(`Trust Line Token EscrowFinish failed: ${iouFinishResponse.result.meta.TransactionResult}`)
   await client.disconnect()
   process.exit(1)
 }
-console.log(`Timed Trust Line Token escrow finished successfully: https://testnet.xrpl.org/transactions/${iouFinishResult.result.hash}`)
+console.log(`Timed Trust Line Token escrow finished successfully: https://testnet.xrpl.org/transactions/${iouFinishResponse.result.hash}`)
 
 await client.disconnect()
