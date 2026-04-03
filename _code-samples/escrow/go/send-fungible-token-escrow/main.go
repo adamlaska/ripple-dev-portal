@@ -74,7 +74,7 @@ func main() {
 	fmt.Printf("Issuer: %s\n", issuer.ClassicAddress)
 	fmt.Printf("Escrow Creator: %s\n", creator.ClassicAddress)
 
-	// ======= Conditional MPT Escrow =======
+	// ====== Conditional MPT Escrow ======
 
 	// Issuer creates an MPT ----------------------
 	fmt.Printf("\n=== Creating MPT ===\n\n")
