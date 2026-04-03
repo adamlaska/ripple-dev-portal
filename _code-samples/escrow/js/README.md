@@ -26,7 +26,7 @@ node send-conditional-escrow.js
 node sendFungibleTokenEscrow.js
 ```
 
-Sample output:
+The script issues an MPT and Trust Line Token, setting up both to be escrowable. It then creates and finishes a conditional escrow with the MPT and a timed escrow with the Trust Line Token.
 
 ```sh
 === Funding Accounts ===

@@ -28,7 +28,7 @@ python send_conditional_escrow.py
 python send_fungible_token_escrow.py
 ```
 
-Sample output:
+The script issues an MPT and Trust Line Token, setting up both to be escrowable. It then creates and finishes a conditional escrow with the MPT and a timed escrow with the Trust Line Token.
 
 ```sh
 === Funding Accounts ===
