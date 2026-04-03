@@ -260,13 +260,12 @@ console.log(`Successfully sent 5000 ${currencyCode} tokens.`)
 // Step 10: Escrow Creator creates a timed trust line token escrow ----------------------
 console.log('\n=== Creating Timed Trust Line Token Escrow ===\n')
 const delay = 10 // seconds
-const finishAfter = new Date()
-finishAfter.setSeconds(finishAfter.getSeconds() + delay)
+const now = new Date()
+const finishAfter = new Date(now.getTime() + delay * 1000)
 const finishAfterRippleTime = xrpl.isoTimeToRippleTime(finishAfter.toISOString())
 console.log(`Escrow will mature after: ${finishAfter.toLocaleString()}\n`)
 
-const iouCancelAfter = new Date()
-iouCancelAfter.setSeconds(iouCancelAfter.getSeconds() + 300)
+const iouCancelAfter = new Date(now.getTime() + 300 * 1000)
 const iouCancelAfterRippleTime = xrpl.isoTimeToRippleTime(iouCancelAfter.toISOString())
 
 const iouEscrowCreateTx = {
