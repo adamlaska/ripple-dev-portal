@@ -1,33 +1,31 @@
-
 // Set up client ----------------------
 
 import xrpl from 'xrpl'
 
-const client = new xrpl.Client('wss://s.devnet.rippletest.net:51233')
+const client = new xrpl.Client('wss://xrplcluster.com')
 await client.connect()
 
 // Look up reserve values ----------------------
 
-const serverInfo = await client.request({ command: 'server_info' })
-const validatedLedger = serverInfo.result.info.validated_ledger
+const serverState = await client.request({ command: 'server_state' })
+const validatedLedger = serverState.result.state.validated_ledger
 
-const baseReserve = validatedLedger.reserve_base_xrp
-const reserveInc = validatedLedger.reserve_inc_xrp
+const baseReserveDrops = validatedLedger.reserve_base
+const reserveIncDrops = validatedLedger.reserve_inc
 
-console.log(`Base reserve: ${baseReserve} XRP`)
-console.log(`Incremental reserve: ${reserveInc} XRP`)
+console.log(`Base reserve: ${xrpl.dropsToXrp(baseReserveDrops)} XRP`)
+console.log(`Incremental reserve: ${xrpl.dropsToXrp(reserveIncDrops)} XRP`)
 
 // Look up owner count ----------------------
 
-const address = "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh" // replace with any address
-const accountInfo = await client.request({ command: "account_info", account: address })
+const address = 'rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn' // replace with any address
+const accountInfo = await client.request({ command: 'account_info', account: address })
 const ownerCount = accountInfo.result.account_data.OwnerCount
 
 // Calculate total reserve ----------------------
 
-const totalReserve = baseReserve + (ownerCount * reserveInc)
-
+const totalReserveDrops = baseReserveDrops + (ownerCount * reserveIncDrops)
 console.log(`Owner count: ${ownerCount}`)
-console.log(`Total reserve: ${totalReserve} XRP`)
+console.log(`Total reserve: ${xrpl.dropsToXrp(totalReserveDrops)} XRP`)
 
 await client.disconnect()

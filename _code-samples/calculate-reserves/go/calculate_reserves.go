@@ -1,9 +1,10 @@
-
 // Set up client ----------------------
 package main
 
 import (
 	"fmt"
+	"strconv"
+	"github.com/Peersyst/xrpl-go/xrpl/currency"
 	"github.com/Peersyst/xrpl-go/xrpl/queries/account"
 	"github.com/Peersyst/xrpl-go/xrpl/queries/server"
 	"github.com/Peersyst/xrpl-go/xrpl/transaction/types"
@@ -13,7 +14,7 @@ import (
 func main() {
 	client := websocket.NewClient(
 		websocket.NewClientConfig().
-			WithHost("wss://s.devnet.rippletest.net:51233"),
+			WithHost("wss://xrplcluster.com"),
 	)
 	defer client.Disconnect()
 
@@ -21,26 +22,35 @@ func main() {
 		panic(err)
 	}
 
-// Look up reserve values ----------------------
+	// Look up reserve values ----------------------
 
-	res, err := client.Request(&server.InfoRequest{})
+	res, err := client.Request(&server.StateRequest{})
 	if err != nil {
 		panic(err)
 	}
-	var serverInfo server.InfoResponse
-	if err := res.GetResult(&serverInfo); err != nil {
+	var serverState server.StateResponse
+	if err := res.GetResult(&serverState); err != nil {
 		panic(err)
 	}
 
-	baseReserve := serverInfo.Info.ValidatedLedger.ReserveBaseXRP
-	reserveInc := serverInfo.Info.ValidatedLedger.ReserveIncXRP
+	baseReserve := serverState.State.ValidatedLedger.ReserveBase
+	reserveInc := serverState.State.ValidatedLedger.ReserveInc
 
-	fmt.Printf("Base reserve: %v XRP\n", baseReserve)
-	fmt.Printf("Incremental reserve: %v XRP\n", reserveInc)
+	baseReserveXrp, err := currency.DropsToXrp(strconv.FormatUint(uint64(baseReserve), 10))
+	if err != nil {
+		panic(err)
+	}
+	reserveIncXrp, err := currency.DropsToXrp(strconv.FormatUint(uint64(reserveInc), 10))
+	if err != nil {
+		panic(err)
+	}
 
-// Look up owner count ----------------------
+	fmt.Printf("Base reserve: %v XRP\n", baseReserveXrp)
+	fmt.Printf("Incremental reserve: %v XRP\n", reserveIncXrp)
 
-	address := types.Address("rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh")
+	// Look up owner count ----------------------
+
+	address := types.Address("rf1BiGeXwwQoi8Z2ueFYTEXSwuJYfV2Jpn") // replace with any address
 	accountInfo, err := client.GetAccountInfo(&account.InfoRequest{Account: address})
 	if err != nil {
 		panic(err)
@@ -48,10 +58,15 @@ func main() {
 
 	ownerCount := accountInfo.AccountData.OwnerCount
 
-// Calculate total reserve ----------------------
+	// Calculate total reserve ----------------------
 
-	totalReserve := float64(baseReserve) + (float64(ownerCount) * float64(reserveInc))
+	totalReserve := baseReserve + (uint(ownerCount) * reserveInc)
+
+	totalReserveXrp, err := currency.DropsToXrp(strconv.FormatUint(uint64(totalReserve), 10))
+	if err != nil {
+		panic(err)
+	}
 
 	fmt.Printf("Owner count: %v\n", ownerCount)
-	fmt.Printf("Total reserve: %v XRP\n", totalReserve)
+	fmt.Printf("Total reserve: %v XRP\n", totalReserveXrp)
 }

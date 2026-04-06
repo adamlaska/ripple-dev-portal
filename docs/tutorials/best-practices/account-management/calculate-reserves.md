@@ -6,13 +6,13 @@ labels:
 ---
 # Calculate Account Reserves
 
-This tutorial demonstrates how to look up and calculate the [reserve requirements](https://xrpl.org/docs/concepts/accounts/reserves) for an XRP Ledger account. Reserves are the minimum amount of XRP an account must hold based on its activity on the ledger.
+This tutorial demonstrates how to look up and calculate the [reserve requirements](../../../concepts/accounts/reserves.md) for an XRP Ledger account. Reserves are the minimum amount of XRP an account must hold based on its activity on the ledger.
 
 ## Goals
 
 By the end of this tutorial, you should be able to: 
-- Look up an account's current [base](https://xrpl.org/docs/concepts/accounts/reserves#base-reserve-and-owner-reserve) and incremental reserve values.
-- Determine an account's [owner reserve](https://xrpl.org/docs/concepts/accounts/reserves#owner-reserves).
+- Look up an account's current [base](../../../concepts/accounts/reserves.md#base-reserve-and-owner-reserve) and incremental reserve values.
+- Determine an account's [owner reserve](../../../concepts/accounts/reserves.md#owner-reserves).
 - Calculate an account's total reserve requirement.
 
 ## Prerequisites
@@ -20,7 +20,7 @@ By the end of this tutorial, you should be able to:
 To complete this tutorial, you need:
 
 - A basic understanding of the XRP Ledger.
-- An XRP Ledger [client library](https://xrpl.org/docs/references/client-libraries) set up.
+- An XRP Ledger [client library](../../../references/client-libraries.md) set up.
 
 ## Source Code 
 
@@ -51,16 +51,11 @@ pip install xrpl-py
 go mod tidy
 ```
 {% /tab %}
-{% tab label="Java" %}
-```bash
-mvn compile
-```
-{% /tab %}
 {% /tabs %}
 
 ### 2. Set up client
 
-Import the XRPL library and create a client connection to a testnet server.
+Import the XRPL library and create a client connection.
 
 {% tabs %}
 {% tab label="JavaScript" %}
@@ -72,14 +67,11 @@ Import the XRPL library and create a client connection to a testnet server.
 {% tab label="Go" %}
 {% code-snippet file="/_code-samples/calculate-reserves/go/calculate_reserves.go" language="go" from="// Set up client" to="// Look up reserve values" /%}
 {% /tab %}
-{% tab label="Java" %}
-{% code-snippet file="/_code-samples/calculate-reserves/java/CalculateReserves.java" language="java" from="// Set up client" to="// Look up reserve values" /%}
-{% /tab %}
 {% /tabs %}
 
 ### 3. Look up reserve values
 
-Retrieve the base and incremental reserve values using the [`server_info`](https://xrpl.org/docs/references/http-websocket-apis/public-api-methods/server-info-methods/server_info) or [`server_state`](https://xrpl.org/docs/references/http-websocket-apis/public-api-methods/server-info-methods/server_state) method. This example uses `server_info` to return values in decimal XRP instead of integer drops.
+Retrieve the base and incremental reserve values using the [`server_info`][server_info method] or [`server_state`][server_state method] method. This example uses `server_state` to return reserve values as integer drops, avoiding floating-point precision issues.
 
 {% tabs %}
 {% tab label="JavaScript" %}
@@ -91,14 +83,11 @@ Retrieve the base and incremental reserve values using the [`server_info`](https
 {% tab label="Go" %}
 {% code-snippet file="/_code-samples/calculate-reserves/go/calculate_reserves.go" language="go" from="// Look up reserve values" to="// Look up owner count"/%}
 {% /tab %}
-{% tab label="Java" %}
-{% code-snippet file="/_code-samples/calculate-reserves/java/CalculateReserves.java" language="java" from="// Look up reserve values" to="// Look up owner count" /%}
-{% /tab %}
 {% /tabs %}
 
-### 4. Determine owner reserve
+### 4. Look up owner count
 
-Once you have the incremental reserve value, multiply that by the number of objects the account owns to determine the owner reserve. You can call [`account_info`](https://xrpl.org/docs/references/http-websocket-apis/public-api-methods/account-methods/account_info) and take `account_data.OwnerCount` to retrieve an account's total number of objects. 
+Call [`account_info`][account_info method] and take `account_data.OwnerCount` to retrieve an account's total number of objects.
 
 {% tabs %}
 {% tab label="JavaScript" %}
@@ -110,16 +99,11 @@ Once you have the incremental reserve value, multiply that by the number of obje
 {% tab label="Go" %}
 {% code-snippet file="/_code-samples/calculate-reserves/go/calculate_reserves.go" language="go" from="// Look up owner count" to="// Calculate total reserve" /%}
 {% /tab %}
-{% tab label="Java" %}
-{% code-snippet file="/_code-samples/calculate-reserves/java/CalculateReserves.java" language="java" from="// Look up owner count" to="// Calculate total reserve" /%}
-{% /tab %}
 {% /tabs %}
 
 ### 5. Calculate total reserve
 
-Use the following formula to calculate an account's total reserve requirement: 
-
-`total reserve = reserve_base_xrp + (OwnerCount × reserve_inc_xrp)`
+Once you have the owner count, you can calculate the account's total reserve. The total reserve is the base reserve plus the incremental reserve multiplied by the owner count.
 
 {% tabs %}
 {% tab label="JavaScript" %}
@@ -131,20 +115,19 @@ Use the following formula to calculate an account's total reserve requirement:
 {% tab label="Go" %}
 {% code-snippet file="/_code-samples/calculate-reserves/go/calculate_reserves.go" language="go" from="// Calculate total reserve" /%}
 {% /tab %}
-{% tab label="Java" %}
-{% code-snippet file="/_code-samples/calculate-reserves/java/CalculateReserves.java" language="java" from="// Calculate total reserve" /%}
-{% /tab %}
 {% /tabs %}
 
 ## See Also
 
 Concepts: 
-- [Reserves](https://xrpl.org/docs/concepts/accounts/reserves)
+- [Reserves](../../../concepts/accounts/reserves.md)
 
 Tutorials:
-- [Calculate and Display the Reserve Requirement (Python)](https://xrpl.org/docs/tutorials/sample-apps/build-a-desktop-wallet-in-python#3-display-an-account)
+- [Calculate and Display the Reserve Requirement (Python)](../../sample-apps/build-a-desktop-wallet-in-python.md#3-display-an-account)
 
 References: 
-- [server_info](https://xrpl.org/docs/references/http-websocket-apis/public-api-methods/server-info-methods/server_info)
-- [server_state](https://xrpl.org/docs/references/http-websocket-apis/public-api-methods/server-info-methods/server_state)
-- [account_info](https://xrpl.org/docs/references/http-websocket-apis/public-api-methods/account-methods/account_info)
+- [`server_info`][server_info method]
+- [`server_state`][server_state method]
+- [`account_info`][account_info method]
+
+{% raw-partial file="/docs/_snippets/common-links.md" /%}
