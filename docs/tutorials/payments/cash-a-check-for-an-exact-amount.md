@@ -36,7 +36,7 @@ Figure out the values of the [CheckCash transaction][] fields. You also need to 
 
 In the sample code, these values are hard-coded, so you should edit them to match your case:
 
-{% code-snippet file="/_code-samples/checks/js/cash-check-exact.js" language="js" from="// Define parameters" before="async function main()" /%}
+{% code-snippet file="/_code-samples/checks/js/cash-check-exact.js" language="js" from="// Define parameters" before="// Connect" /%}
 
 Then, you use these parameters to fill out the transaction. For example:
 
@@ -47,7 +47,7 @@ Then, you use these parameters to fill out the transaction. For example:
 
 Send the transaction and wait for it to be validated by the consensus process, as normal:
 
-{% code-snippet file="/_code-samples/checks/js/cash-check-exact.js" from="// Submit" before="// Confirm" /%}
+{% code-snippet file="/_code-samples/checks/js/cash-check-exact.js" language="js" from="// Submit" before="// Confirm" /%}
 
 
 ### 3. Confirm transaction result
@@ -58,7 +58,7 @@ If the transaction succeeded, it should have a `"TransactionResult": "tesSUCCESS
 
 You can look at the transaction metadata to confirm the balance changes that occurred as a result of delivering the exact amount. The `xrpl.getBalanceChanges()` function can help to summarize this. For example:
 
-{% code-snippet file="/_code-samples/checks/js/cash-check-exact.js" from="// Confirm transaction results" before="// Disconnect" /%}
+{% code-snippet file="/_code-samples/checks/js/cash-check-exact.js" language="js" from="// Confirm transaction results" before="// Disconnect" /%}
 
 Example balance changes output:
 

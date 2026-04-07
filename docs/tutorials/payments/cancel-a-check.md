@@ -36,19 +36,19 @@ Figure out the values of the [CheckCancel transaction][] fields. The following f
 
 For example:
 
-{% code-snippet file="/_code-samples/checks/js/cancel-check.js" from="// Prepare" before="// Submit" /%}
+{% code-snippet file="/_code-samples/checks/js/cancel-check.js" language="js" from="// Prepare" before="// Submit" /%}
 
 ### 2. Submit the CheckCancel transaction
 
 Submit the CheckCancel transaction in the usual way and wait for it to be validated. If the result code is `tesSUCCESS` and the transaction is in a validated ledger, the transaction is successful. For example:
 
-{% code-snippet file="/_code-samples/checks/js/cancel-check.js" from="// Submit" before="// Confirm" /%}
+{% code-snippet file="/_code-samples/checks/js/cancel-check.js" language="js" from="// Submit" before="// Confirm" /%}
 
 ## 3. Confirm transaction result
 
 If the transaction succeeded, it should have a `"TransactionResult": "tesSUCCESS"` field in the metadata, and the field `"validated": true` in the result, indicating that this result is final. For example:
 
-{% code-snippet file="/_code-samples/checks/js/cancel-check.js" from="// Confirm" before="// Disconnect" /%}
+{% code-snippet file="/_code-samples/checks/js/cancel-check.js" language="js" from="// Confirm" before="// Disconnect" /%}
 
 {% admonition type="success" name="Tip" %}The `submitAndWait()` method in xrpl.js only returns when the transaction's result is final, so you can assume that the transaction is validated if it returns a result code of `tesSUCCESS`.{% /admonition %}
 
