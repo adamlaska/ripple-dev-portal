@@ -25,8 +25,6 @@ Provisionally issue a [credential](../../../../concepts/decentralized-storage/cr
 
 {% raw-partial file="/docs/_snippets/tx-fields-intro.md" /%}
 
-In addition to the [common fields][], CredentialCreate transactions use the following fields:
-
 | Field            | JSON Type            | [Internal Type][] | Required? | Description |
 |:-----------------|:---------------------|:------------------|:----------|:------------|
 | `Subject`        | String - [Address][] | AccountID         | Yes       | The subject of the credential. |
