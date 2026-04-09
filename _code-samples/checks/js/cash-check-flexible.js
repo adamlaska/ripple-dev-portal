@@ -1,28 +1,27 @@
 import xrpl from 'xrpl'
+import { execSync } from 'child_process'
+import fs from 'fs'
 
-// Define parameters. Edit this code with your values before running it.
-const secret = "s████████████████████████████"
-// Replace with your secret
-const check_id = "" // Replace with your Check ID
-const deliver_min = "20000000" // Replace with the minimum amount to receive
-               // String for XRP in drops
-               // {currency, issuer, value} object for token amount
+// Auto-run setup if needed ----------------------
+
+if (!fs.existsSync('checks-setup.json')) {
+  execSync('node checks-setup.js', { stdio: 'inherit' })
+}
+
+// Define parameters ----------------------
+
+const setupData = JSON.parse(fs.readFileSync('checks-setup.json', 'utf8'))
+const wallet = xrpl.Wallet.fromSeed(setupData.recipient.seed)
+const check_id = setupData.checkIDs.flexible
+const deliver_min = xrpl.xrpToDrops(20)
 
 // Connect to Testnet ----------------------
+
 const client = new xrpl.Client("wss://s.altnet.rippletest.net:51233")
 await client.connect()
 
-// Instantiate a wallet ----------------------
-const wallet = xrpl.Wallet.fromSeed(secret)
-console.log("Wallet address: ", wallet.address)
-
-// Check if the check ID is provided ----------------------
-if (check_id.length === 0) {
-  console.log("Please edit this snippet to provide a check ID. You can get a check ID by running create-check.js.")
-  process.exit(1)
-}
-
 // Prepare the transaction ----------------------
+
 const checkcash = {
   TransactionType: "CheckCash",
   Account: wallet.address,
@@ -31,6 +30,7 @@ const checkcash = {
 }
 
 // Submit the transaction ----------------------
+
 const tx = await client.submitAndWait(
   checkcash,
   { autofill: true,
@@ -38,6 +38,7 @@ const tx = await client.submitAndWait(
 )
 
 // Confirm transaction results ----------------------
+
 console.log(`Transaction result: ${JSON.stringify(tx, null, 2)}`)
 
 if (tx.result.meta.TransactionResult === "tesSUCCESS") {
@@ -51,4 +52,5 @@ if (tx.result.meta.TransactionResult === "tesSUCCESS") {
 }
 
 // Disconnect ----------------------
+
 await client.disconnect()

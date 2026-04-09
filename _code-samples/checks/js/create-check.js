@@ -1,18 +1,21 @@
 import xrpl from 'xrpl'
 
 // Connect to the XRP Ledger Test Net ----------------------
+
 console.log("Connecting to Testnet...")
 const client = new xrpl.Client('wss://s.altnet.rippletest.net:51233')
 await client.connect()
 console.log("Connected.")
 
 // Get a new wallet ----------------------
+
 console.log("Generating new wallet...")
 const wallet = (await client.fundWallet()).wallet
 console.log("  Address:", wallet.address)
 console.log("  Seed:", wallet.seed)
 
 // Prepare the transaction ----------------------
+
 const checkcreate = {
   "TransactionType": "CheckCreate",
   "Account": wallet.address,
@@ -22,6 +25,7 @@ const checkcreate = {
 }
 
 // Submit the transaction ----------------------
+
 console.log("Submitting transaction...")
 const tx = await client.submitAndWait(
   checkcreate,
@@ -30,6 +34,7 @@ const tx = await client.submitAndWait(
 )
 
 // Get transaction result and Check ID ----------------------
+
 console.log(`Transaction: ${JSON.stringify(tx, null, 2)}`)
 
 if (tx.result.meta.TransactionResult === "tesSUCCESS") {
@@ -53,4 +58,5 @@ if (tx.result.meta.TransactionResult === "tesSUCCESS") {
 }
 
 // Disconnect ----------------------
+
 await client.disconnect()

@@ -44,7 +44,7 @@ Submit the CheckCancel transaction in the usual way and wait for it to be valida
 
 {% code-snippet file="/_code-samples/checks/js/cancel-check.js" language="js" from="// Submit" before="// Confirm" /%}
 
-## 3. Confirm transaction result
+### 3. Confirm transaction result
 
 If the transaction succeeded, it should have a `"TransactionResult": "tesSUCCESS"` field in the metadata, and the field `"validated": true` in the result, indicating that this result is final. For example:
 

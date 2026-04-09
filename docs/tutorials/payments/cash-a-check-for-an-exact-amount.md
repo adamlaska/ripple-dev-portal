@@ -34,7 +34,7 @@ Figure out the values of the [CheckCash transaction][] fields. You also need to 
 | `CheckID`         | String               | The ID of the Check to cash. You can get this information from the person who sent you the Check, or by [looking up checks](./look-up-checks.md) where your account is the destination. |
 | `Amount`          | [Currency Amount][]  | The amount to receive. The type of currency (token or XRP) must match the Check object. The quantity in the `value` field must be less than or equal to the amount in the Check object. (For currencies with transfer fees, you must cash the Check for less than its `SendMax` so the transfer fee can be paid by the `SendMax`.) For more information on specifying currency amounts, see [Specifying Currency Amounts][]. |
 
-In the sample code, these values are hard-coded, so you should edit them to match your case:
+Before running this script, run `checks-setup.js` first to create test wallets and checks. The script loads the wallet seed and check ID from `checks-setup.json`:
 
 {% code-snippet file="/_code-samples/checks/js/cash-check-exact.js" language="js" from="// Define parameters" before="// Connect" /%}
 

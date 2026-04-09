@@ -37,7 +37,7 @@ Figure out the values of the [CheckCash transaction][] fields. To cash a check f
 | `CheckID`         | String               | The ID of the Check to cash. You can get this information from the person who sent you the Check, or by [looking up checks](./look-up-checks.md) where your account is the destination. |
 | `DeliverMin`      | [Currency Amount][]  | A minimum amount to receive from the Check. If you cannot receive at least this much, cashing the Check fails, leaving the Check in the ledger so you can try again. For XRP, this must be a string specifying drops of XRP. For tokens, this is an object with `currency`, `issuer`, and `value` fields. The `currency` and `issuer` fields must match the corresponding fields in the Check object, and the `value` must be less than or equal to the amount in the Check object. For more information on specifying currency amounts, see [Specifying Currency Amounts][]. |
 
-In the sample code, these values are hard-coded, so you should edit them to match your case:
+Before running this script, run `checks-setup.js` first to create test wallets and checks. The script loads the wallet seed and check ID from `checks-setup.json`:
 
 {% code-snippet file="/_code-samples/checks/js/cash-check-flexible.js" language="js" from="// Define parameters" before="// Connect" /%}
 
