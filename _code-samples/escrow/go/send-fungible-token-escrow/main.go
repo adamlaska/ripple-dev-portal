@@ -317,7 +317,7 @@ func main() {
 		fmt.Printf("TrustSet failed: %s\n", trustResponse.Meta.TransactionResult)
 		os.Exit(1)
 	}
-	fmt.Printf("Trust line successfully created for \"IOU\" tokens.\n")
+	fmt.Printf("Trust line successfully created for \"%s\" tokens.\n", currencyCode)
 
 	// Issuer sends IOU tokens to creator ----------------------
 	fmt.Printf("\n=== Issuer Sending IOU Tokens to Escrow Creator ===\n\n")

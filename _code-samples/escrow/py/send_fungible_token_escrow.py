@@ -195,7 +195,7 @@ trust_response = submit_and_wait(trust_set_tx, client, creator)
 if trust_response.result["meta"]["TransactionResult"] != "tesSUCCESS":
     print(f"TrustSet failed: {trust_response.result['meta']['TransactionResult']}")
     exit(1)
-print('Trust line successfully created for "IOU" tokens.')
+print(f'Trust line successfully created for "{currency_code}" tokens.')
 
 # Issuer sends IOU tokens to creator ----------------------
 print("\n=== Issuer Sending IOU Tokens to Escrow Creator ===\n")

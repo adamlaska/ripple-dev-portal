@@ -226,7 +226,7 @@ if (trustResponse.result.meta.TransactionResult !== 'tesSUCCESS') {
   await client.disconnect()
   process.exit(1)
 }
-console.log('Trust line successfully created for "IOU" tokens.')
+console.log(`Trust line successfully created for "${currencyCode}" tokens.`)
 
 // Issuer sends IOU tokens to creator ----------------------
 console.log('\n=== Issuer Sending IOU Tokens to Escrow Creator ===\n')
