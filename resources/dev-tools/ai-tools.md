@@ -4,49 +4,46 @@ seo:
 ---
 # AI Tools
 
-The industry has shifted sharply toward _Agentic Workflows_ to accelerate development, automate integrations, and deploy secure solutions on the XRP Ledger. To meet this growing segment of developers, we provide AI tools to reduce hallucinations, automate tasks, and improve code generation.
+AI tools help you build on the XRP Ledger faster by giving AI models access to up-to-date XRPL documentation, SDK references, and code samples.
 
 
 ## Model Context Protocol (MCP) Servers
 
-Ensure your LLM uses the latest infoThe direct data pipe for AI. The Model Context Protocol (MCP) allows your AI tools to skip the "search and scrape" phase. By connecting your IDE to the XRPL MCP server, you provide your LLM with a real-time, version-accurate stream of markdown files from the official repository.
-Connect to the Context7 agentic registry to import the full XRPL knowledge base.
-CTA: [Context7 MCP]
+AI models are limited by their training data, which may not include the latest XRPL features or SDK updates. MCP servers solve this by giving your AI real-time access to current documentation through a standardized interface. Instead of relying on potentially outdated training data, your AI can query an MCP server for accurate, up-to-date context. Below is a list of available MCP servers:
+
+- **Context7**: A large collection of searchable repos and websites. XRPL-relevant info includes:
+    - [xrpl.org](https://xrpl.org/docs)
+    - [opensource.ripple.com](https://opensource.ripple.com/)
+    - [docs.xrplevm.org](https://docs.xrplevm.org/)
+    - [XRPL JavaScript SDK](https://github.com/xrplf/xrpl.js)
+    - [XRPL Python SDK](https://github.com/xrplf/xrpl-py)
+    - [XRPL Go SDK](https://github.com/xrplf/xrpl-go)
+- **xrpl.org MCP Server**: Search across documentation on xrpl.org for a given query.
 
 
-## Agent Intelligence & Skills (SKILLS.md)
-Logic-level guardrails for autonomous agents. Raw data is not enough for secure financial deployments. We are introducing official SKILLS.md files—standardized behavioral instructions that act as a "firmware update" for your AI models.
-Deterministic Logic: Forces LLMs to follow strict transaction fee handling and sequence logic.
-Compliance & Security: Teaches models to prioritize multisig configurations and check for active network amendments (like XLS-30 or XLS-66) before proposing code.
-Status: [Coming Soon] 
+## SKILLS.md
+
+A SKILLS.md file provides behavioral instructions for AI models working with XRPL code. It defines domain-specific rules — like transaction validation, fee handling, and security best practices — so the AI follows correct patterns without you having to explain them each time.
+
+- **[XRPL Development Skill for Claude Code](https://github.com/XRPL-Commons/xrpl-dev-skills)**: A comprehensive Claude Code skill for modern XRP Ledger development, provided by XRPL Commons. This skill uses Claude Code's progressive disclosure pattern. The main `SKILL.md` provides core guidance, and Claude reads specialized markdown files only when needed for specific tasks.
+- **[Generate Release Notes](https://github.com/XRPLF/xrpl-dev-portal/blob/master/.claude/skills/generate-release-notes/SKILL.md)**: This skill generates a draft release notes blog post for new versions of `rippled`. This is intended for those contributing to the XRPL documentation site.
 
 
 ## Site Optimizations
 
+### AI Search
+
+We include an AI chatbot on xrpl.org, opensource.ripple.com, and docs.xrplevm.org to provide a more natural-language approach to searching documentation. You can access this feature either through the **Ask AI** button on the bottom right of the website, or the **Search with AI** button from the search bar.
+
 ### llms.txt
 
-Any AI that searches the website has access to an `llms.txt` file at the site directory root. This file serves as a curated index of content, ensuring it can find relevant information quickly.
+The site hosts an `llms.txt` file at the root directory, providing a curated index of content for AI crawlers and tools to find relevant information quickly.
 
-### Context-Optimization
+### Context Optimization
 
-Markdown files are the best format to feed an LLM context. Every page on the doc site hosts an `.md` version, which is accessible from the `Copy` dropdown at the top of the page. The full list of copy commands include:
+Markdown files are the best format to feed an LLM context. Every page on the doc site hosts an `.md` version, which is accessible from the `Copy` dropdown at the top of the page. The copy options include:
 
-- Copying the contents of the raw `.md` file.
-- A link to the `.md` version of the page.
-- A button that adds the page URL to a chat window in either `Claude` or `ChatGPT` chat windows.
-- A one-click MCP server setup in either `VS Code` or `Cursor`.
-
-
- Every page has a markdown version
-
-## RAG-Optimized Infrastructure
-The site architecture is being optimized for Retrieval-Augmented Generation (RAG).
-Semantic Precision
-The core pages are undergoing a semantic audit to eliminate ambiguous language and implement self-contained chunking. 
-When your RAG pipeline retrieves a snippet, it contains all the context necessary for the LLM to understand the logic without needing to crawl adjacent pages.
-The llms.txt Standard
-The site hosts a specialized llms.txt index. This serves as a high-density "map" for crawlers, ensuring your AI assistants are always referencing the official source of truth.
-Overall Developer Experience 
-We have removed the friction between the documentation and the codebase with features designed for high-stakes environments.
-Copy for LLM: Powered by Redocly, our code samples feature a specialized "Copy for LLM" button. This removes UI clutter and formats the code with the metadata headers LLMs need for perfect prompt injection.
-Hybrid Tutorials: Our guides are built as "Modular Lego Blocks." They provide the narrative "Why" for human reviewers and the deterministic "How" for AI agents to execute without confusion.
+- Copy the contents of the raw `.md` file.
+- Copy a link to the `.md` version of the page.
+- Open the page in a `Claude` or `ChatGPT` chat window.
+- Set up the xrpl.org MCP server in `VS Code` or `Cursor` with one click.
