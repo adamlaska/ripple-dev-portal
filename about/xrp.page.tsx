@@ -23,7 +23,7 @@ const softwallets = [
   { href: "https://coin.space/", id: "wallet-coin", alt: "Coin Space" },
   { href: "https://crossmark.io/", id: "wallet-crossmark", alt: "Crossmark Wallet" },
   { href: "https://gatehub.net/", id: "wallet-gatehub", alt: "Gatehub", imgclasses: "invertible-img" },
-  { href: "https://gemwallet.app/", id: "wallet-gem", alt: "Gem Wallet" },
+  { href: "https://gemwallet.com/", id: "wallet-gem", alt: "Gem Wallet" },
   { href: "https://joeywallet.xyz/", id: "wallet-joey", alt: "Joey Wallet" },
   { href: "https://trustwallet.com/", id: "wallet-trust", alt: "Trust Wallet" },
   { href: "https://xaman.app/", id: "wallet-xumm", alt: "Xaman" }
