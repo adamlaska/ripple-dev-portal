@@ -1,7 +1,7 @@
 ---
 name: generate-release-notes
 description: Generate and sort rippled release notes from GitHub commit history
-argument-hint: --from <ref> --to <ref> [--date YYYY-MM-DD]
+argument-hint: --from <ref> --to <ref> [--date YYYY-MM-DD] [--output <path>]
 allowed-tools: Bash, Read, Edit, Write, Grep, Glob
 effort: max
 ---
