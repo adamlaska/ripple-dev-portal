@@ -28,10 +28,18 @@ responseHeaders:
       value: noindex
 search:
   engine: typesense
-  ai:
-    hide: true
   filters:
     hide: true
+aiAssistant:
+  hide: false
+mcp:
+  hide: false
+  docs:
+    hide: false
+    name: "xrpl.org MCP server"
+    ignore:
+      - ja/**
+      - es-es/**
 metadataGlobs:
   'docs/**':
     redocly_category: Documentation
