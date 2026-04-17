@@ -2,9 +2,11 @@ import xrpl from 'xrpl'
 import { execSync } from 'child_process'
 import fs from 'fs'
 
-// Auto-run setup if needed ----------------------
+// Looks for setup data required to run the checks tutorials.
+// If missing, checks-setup.js will generate the data.
 
 if (!fs.existsSync('checks-setup.json')) {
+  console.log(`\n=== Checks tutorial data doesn't exist. Running setup script... ===\n`)
   execSync('node checks-setup.js', { stdio: 'inherit' })
 }
 
@@ -20,43 +22,43 @@ await client.connect()
 
 // Loop through account objects until marker is undefined ----------------------
 
-let current_marker = null
-let checks_found = []
+let currentMarker = null
+let checksFound = []
 do {
   const request = {
-    "command": "account_objects",
-    "account": address,
-    "ledger_index": "validated",
-    "type": "check"
+    command: 'account_objects',
+    account: address,
+    ledger_index: 'validated',
+    type: 'check'
   }
 
-  if (current_marker) {
-    request.marker = current_marker
+  if (currentMarker) {
+    request.marker = currentMarker
   }
 
   const response = await client.request(request)
 
-  checks_found = checks_found.concat(response.result.account_objects)
-  current_marker = response.result.marker
+  checksFound = checksFound.concat(response.result.account_objects)
+  currentMarker = response.result.marker
 
-} while (current_marker)
+} while (currentMarker)
 
 // Filter results by recipient ----------------------
 // To filter by sender, check Account field instead of Destination
 
-const checks_by_recipient = []
-for (const check of checks_found) {
+const checksByRecipient = []
+for (const check of checksFound) {
   if (check.Destination == address) {
-    checks_by_recipient.push(check)
+    checksByRecipient.push(check)
   }
 }
 
 // Print results ----------------------
 
-if (checks_by_recipient.length === 0) {
-  console.log("No checks found.")
+if (checksByRecipient.length === 0) {
+  console.log('No checks found.')
 } else {
-  console.log("Checks: \n", JSON.stringify(checks_by_recipient, null, 2))
+  console.log('Checks: \n', JSON.stringify(checksByRecipient, null, 2))
 }
 
 // Disconnect ----------------------

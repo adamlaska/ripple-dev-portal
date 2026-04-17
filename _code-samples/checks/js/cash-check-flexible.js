@@ -2,55 +2,67 @@ import xrpl from 'xrpl'
 import { execSync } from 'child_process'
 import fs from 'fs'
 
-// Auto-run setup if needed ----------------------
+// Looks for setup data required to run the checks tutorials.
+// If missing, checks-setup.js will generate the data.
 
 if (!fs.existsSync('checks-setup.json')) {
+  console.log(`\n=== Checks tutorial data doesn't exist. Running setup script... ===\n`)
   execSync('node checks-setup.js', { stdio: 'inherit' })
 }
 
-// Define parameters ----------------------
+// Load setup data --------------------------------------------------------
 
 const setupData = JSON.parse(fs.readFileSync('checks-setup.json', 'utf8'))
 const wallet = xrpl.Wallet.fromSeed(setupData.recipient.seed)
-const check_id = setupData.checkIDs.flexible
-const deliver_min = xrpl.xrpToDrops(20)
+const checkID = setupData.checkIDs.flexible
+const deliverMin = xrpl.xrpToDrops(20)
 
-// Connect to Testnet ----------------------
+console.log(`Wallet address: ${wallet.address}`)
+console.log(`Check ID to cash: ${checkID}`)
+console.log(`Deliver minimum: ${deliverMin}`)
 
-const client = new xrpl.Client("wss://s.altnet.rippletest.net:51233")
+// Connect to Testnet -----------------------------------------------------
+
+const client = new xrpl.Client('wss://s.altnet.rippletest.net:51233')
 await client.connect()
 
-// Prepare the transaction ----------------------
+// Prepare the transaction ------------------------------------------------
 
-const checkcash = {
+const checkCash = {
   TransactionType: "CheckCash",
   Account: wallet.address,
-  CheckID: check_id,
-  DeliverMin: deliver_min
+  CheckID: checkID,
+  DeliverMin: deliverMin
 }
 
-// Submit the transaction ----------------------
+// Validate the transaction before submitting -----------------------------
 
+xrpl.validate(checkCash)
+console.log(JSON.stringify(checkCash, null, 2))
+
+// Submit the transaction -------------------------------------------------
+
+console.log(`\n=== Submitting CheckCash transaction ===\n`)
 const tx = await client.submitAndWait(
-  checkcash,
+  checkCash,
   { autofill: true,
-    wallet: wallet }
+    wallet }
 )
 
-// Confirm transaction results ----------------------
+// Confirm transaction result ---------------------------------------------
 
-console.log(`Transaction result: ${JSON.stringify(tx, null, 2)}`)
-
-if (tx.result.meta.TransactionResult === "tesSUCCESS") {
-  // submitAndWait() only returns when the transaction's outcome is final,
-  // so you don't also have to check for validated: true.
-  console.log("Transaction was successful.")
-
-  console.log("Balance changes:",
-    JSON.stringify(xrpl.getBalanceChanges(tx.result.meta), null, 2)
-  )
+const resultCode = tx.result.meta.TransactionResult
+if (resultCode !== 'tesSUCCESS') {
+  console.error('Unable to cash check:', resultCode)
+  await client.disconnect()
+  process.exit(1)
 }
 
-// Disconnect ----------------------
+console.log('Check cashed successfully.')
+console.log('Balance changes:',
+  JSON.stringify(xrpl.getBalanceChanges(tx.result.meta), null, 2)
+)
+
+// Disconnect -------------------------------------------------------------
 
 await client.disconnect()

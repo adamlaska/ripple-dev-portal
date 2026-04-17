@@ -38,16 +38,16 @@ const ticketCreateResult = await client.submitAndWait(
   {
     TransactionType: 'TicketCreate',
     Account: sender.address,
-    TicketCount: 3
+    TicketCount: 4
   },
   { wallet: sender, autofill: true }
 )
 const ticketSequences = getTicketSequences(ticketCreateResult)
 
-// Create three checks in parallel ----------------------
+// Create four checks in parallel ----------------------
 
 process.stdout.write('Setting up tutorial: 2/3\r')
-const [exactResult, flexibleResult, cancelResult] = await Promise.all([
+const [exactResult, flexibleResult, cancelResult, sampleResult] = await Promise.all([
   client.submitAndWait(
     {
       TransactionType: 'CheckCreate',
@@ -80,6 +80,17 @@ const [exactResult, flexibleResult, cancelResult] = await Promise.all([
       Sequence: 0
     },
     { wallet: sender, autofill: true }
+  ),
+  client.submitAndWait(
+    {
+      TransactionType: 'CheckCreate',
+      Account: sender.address,
+      Destination: recipient.address,
+      SendMax: xrpl.xrpToDrops(50),
+      TicketSequence: ticketSequences[3],
+      Sequence: 0
+    },
+    { wallet: sender, autofill: true }
   )
 ])
 
@@ -98,7 +109,8 @@ const setupData = {
   checkIDs: {
     exact: getCheckId(exactResult),
     flexible: getCheckId(flexibleResult),
-    cancel: getCheckId(cancelResult)
+    cancel: getCheckId(cancelResult),
+    sample: getCheckId(sampleResult)
   }
 }
 fs.writeFileSync('checks-setup.json', JSON.stringify(setupData, null, 2))
