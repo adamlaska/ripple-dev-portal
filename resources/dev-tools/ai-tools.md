@@ -55,7 +55,7 @@ The site hosts an [llms.txt](https://xrpl.org/llms.txt) file at the root directo
 
 ### Context Optimization
 
-Markdown is an efficient format for providing documentation context to an AI. Every page on the doc site hosts an `.md` version, which is accessible from the **Copy** dropdown at the top of the page. The dropdown includes options to:
+Markdown is an efficient format for providing documentation context to an AI. Every documentation page on the site hosts an `.md` version, which is accessible from the **Copy** dropdown at the top of the page. The dropdown includes options to:
 
 - Copy the contents of the `.md` file.
 - View the page as an `.md` file.
