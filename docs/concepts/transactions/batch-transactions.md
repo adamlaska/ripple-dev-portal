@@ -55,7 +55,7 @@ Each inner transaction:
 
 - Must set the `tfInnerBatchTxn` flag.
 - Must not have a fee. It must use a fee value of _0_.
-- Must not be signed (the global transaction is already signed by all relevant parties). They must instead have an empty string ("") in the `SigningPubKey` and `TxnSignature` fields.
+- Must not be signed (the global transaction is already signed by all relevant parties). It should instead have an empty string (`""`) in the `SigningPubKey` field and must not include the `TxnSignature` or `Signers` fields.
 
 A transaction is considered a failure if it receives any result that is not `tesSUCCESS`.
 
@@ -130,7 +130,7 @@ Each outer transaction contains the metadata for its sequence and fee processing
 
 Each inner transaction contains the metadata for its own processing. Only the inner transactions that are actually committed to the ledger are included. This makes it easier for legacy systems to process `Batch` transactions as if they were normal.
 
-There is also a pointer back to the parent outer transaction (`ParentBatchID`).
+There is also a pointer back to the outer transaction (`ParentBatchID`).
 
 ## Transaction Common Fields
 
@@ -195,13 +195,13 @@ Wallets that display or sign `Batch` transactions should:
 - Clearly display all inner transactions to users before requesting a signature, so users understand the full scope of what they are approving.
 - For multi-account `Batch` transactions, provide a workflow for users to review and sign their portion of the batch, then export it for other parties to sign.
 - Warn users if they are signing a `Batch` transaction that includes inner transactions from other accounts, since they are approving the entire batch.
-- Display the batch mode (`ALLORNOTHING`, `ONLYONE`, `UNTILFAILURE`, `INDEPENDENT`) and explain its implications.
-- Avoid auto-incrementing sequence numbers after successes or failures, since the number of validated transactions depends on the batch mode and which inner transactions succeed.
+- Display the [batch mode](#xrpl-batch-transaction-modes) and explain its implications.
+- Avoid auto-incrementing sequence numbers after successes or failures, since the number of validated transactions depends on the batch mode and which inner transactions succeed. Instead, wait for the outer `Batch` transaction to be validated and check the result of each inner transaction to determine which sequences were consumed.
 
 ### Explorers and Indexers
 
 Explorers and indexers that display `Batch` transactions should:
 
 - Display the relationship between outer `Batch` transactions and their inner transactions using the `ParentBatchID` field in the inner transaction metadata.
-- Show inner transactions in context with their parent `Batch` transaction, rather than as standalone transactions.
+- Show inner transactions in context with their outer `Batch` transaction, rather than as standalone transactions.
 - Consider grouping inner transactions with their outer transaction in transaction lists for clarity.
